@@ -13,8 +13,8 @@ It can run synchronous and asynchronous tasks.
   `TaskQueue` is a Mongodb backed job queue.
 
 # Cluster
-  `Cluster.isMaster()`: `true` if this process is the master\n
-  `Cluster.maxWorkers()`: returns the maximum number of workers available at the same time\n
+  `Cluster.isMaster()`: `true` if this process is the master<br/>
+  `Cluster.maxWorkers()`: returns the maximum number of workers available at the same time<br/>
 
   `constructor(taskMap: Object, masterOptions: { port: Integer, maxAvailableWorkers: Integer, refreshRate: Integer })`
   - `maxAvailableWorkers`: maximum number of child process (cores), default set to maximum
@@ -22,7 +22,7 @@ It can run synchronous and asynchronous tasks.
   - `refreshRate`: Worker pool refresh rate, default set to `1000`
   - `taskMap`: a map of functions associated to a `taskType`
 
-  `Cluster` is the WorkerPool Handler\n\n
+  `Cluster` is the WorkerPool Handler<br/><br/>
   on the Master :
   - verifies if jobs are in the queue
   - verifies if workers are available, or create them
