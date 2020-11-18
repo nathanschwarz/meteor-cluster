@@ -73,12 +73,15 @@ class Cluster {
       jobs.forEach((job, i) => availableWorkers[i].startJob(job._id))
     }
 
+    // initializing interval
     this.interval = null
-    this.setRefreshRate(delay) {
+    this.setRefreshRate = (delay) => {
       if (this.interval != null) {
         Meteor.clearInterval(this.interval)
       }
+      this.interval = Meteor.setInterval(this._run, refreshRate)
     }
-    this.interval = Meteor.setInterval(this._run, refreshRate)
+
+    this.setRefreshRate(refreshRate)
   }
 }

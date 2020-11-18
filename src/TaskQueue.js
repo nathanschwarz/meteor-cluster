@@ -12,7 +12,7 @@ class MongoTaskQueue extends Mongo {
       doc._id = _id
     }
     return super.insert(doc, cb)
-  },
+  }
   static _ensureIndex() {
     super.rawCollection().createIndex({ taskType: 1 })
     super.rawCollection().createIndex({ onGoing: 1 })
@@ -27,8 +27,6 @@ class MongoTaskQueue extends Mongo {
   static execute(jobId) {
     return new Promise((resolve, reject) => {
       const job = super.findOne({ _id: jobId })
-        reject(`undefined task type ${taskType}`)
-      }
       try {
         const task = super.taskMap[job.taskType](job)
         task.then(() => {
