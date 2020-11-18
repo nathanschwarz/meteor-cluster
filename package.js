@@ -6,14 +6,6 @@ Package.describe({
   documentation: 'README.md'
 })
 
-Package.registerBuildPlugin({
-  name: 'meteor-cluster',
-  use: [],
-  sources: [
-    'index.js'
-  ]
-})
-
 Package.onUse((api) => {
   api.versionsFrom('1.9')
   api.use('check')
