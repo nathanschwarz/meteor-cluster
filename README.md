@@ -4,13 +4,12 @@ Meteor Package enabling users to create a Worker Pool on the server to handle he
 It can run synchronous and asynchronous tasks.
 
 # TaskQueue
+  `TaskQueue` is a Mongodb backed job queue. It enables to add, update, save jobs consistently between processes.<br><br>
   `TaskQueue.addTask({ taskType: String, data: Object, priority: Integer, _id: String })`
   - `taskType` is mandatory
   - `data` is mandatory but you can pass an empty object
   - `priority` is mandatory, default is set to 1
   - `_id` is optional
-
-  `TaskQueue` is a Mongodb backed job queue.
 
 # Cluster
   `Cluster` is the WorkerPool Handler<br/><br/>
@@ -25,7 +24,7 @@ It can run synchronous and asynchronous tasks.
   - removes the task from the queue once the job is done
 
   ## prototype
-  
+
   `Cluster.isMaster()`: `true` if this process is the master<br/>
   `Cluster.maxWorkers()`: returns the maximum number of workers available at the same time<br/>
 
