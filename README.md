@@ -4,7 +4,7 @@ Meteor Package enabling users to create a Worker Pool on the server to handle he
 It can run synchronous and asynchronous tasks.
 
 # TaskQueue
-  `TaskQueue` is a Mongodb backed job queue. It enables to add, update, save jobs consistently between processes.<br><br>
+  `TaskQueue` is a Mongodb backed job queue. It enables to add, update, remove jobs consistently between processes.<br><br>
   `TaskQueue.addTask({ taskType: String, data: Object, priority: Integer, _id: String })`
   - `taskType` is mandatory
   - `data` is mandatory but you can pass an empty object
