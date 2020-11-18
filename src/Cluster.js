@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor'
 import TaskQueue from './TaskQueue'
 import { WORKER_STATUSES, ClusterWorker } from './Worker'
-import { warnLogger, errorLogger } from './logs'
+import { warnLogger } from './logs'
 
 const cluster = require('cluster')
 const process = require('process')
@@ -19,6 +19,9 @@ class Cluster {
       TaskQueue.registerTaskMap(taskMap)
       if (cluster.isMaster) {
         this._init(masterProps)
+      } else {
+        process.on('message', ClusterWorker.onMessage)
+        process.on('disconnect', ClusterWorker.onDisconnect)
       }
     })
   }
@@ -29,39 +32,26 @@ class Cluster {
     } else if (maxAvailableWorkers <= 0) {
       warnLogger(`cannot have ${maxAvailableWorkers} workers, setting initial value to 1`)
       this._cpus = 1
+    } else {
+      this._cpus = maxAvailableWorkers
     }
     this._port = port
     this._workers = []
-
-    this.getWorker = (pid) => this._workers.find(w => pid === w.process.pid)
-    this.onListening = (_worker) => {
-      const worker = this.getWorker(_worker.process.pid)
-      worker.isReady = true
-    }
-    this.onMessage = (msg) => {
-      const worker = this.getWorker(msg.pid)
-      if (msg.status === WORKER_STATUSES.IDLE) {
-        return worker.onJobEnd()
-      } else if (WORKER_STATUSES.IDLE_ERROR) {
-        worker.onJobEnd()
-        errorLogger(msg.error)
-      }
-    }
-    cluster.on('listenning', this.onListening)
-    cluster.on('message', this.onMessage)
+    this.getWorkerIndex = (id) =>this._workers.findIndex(w => w.id === id)
+    this.getWorker = (id) => this._workers[this.getWorkerIndex(id)]
 
     this._getAvailableWorkers = (wantedWorkers) => {
       const workerToCreate = wantedWorkers - this._workers.length
       if (workerToCreate > 0) {
         for (let i = 0; i < workerToCreate; i++) {
           const worker = new ClusterWorker()
-          worker.register({ PORT: this.port })
+          worker.register({ ...process.env, PORT: this.port })
           this._workers.push(worker)
         }
-      } else {
+      } else if (workerToCreate < 0) {
         this._workers.filter(w => w.isIdle && w.isReady).slice(workerToCreate).forEach(w => w.close())
-        this._workers = this._workers.slice(this._workers.length + workerToCreate)
       }
+      this._workers = this._workers.filter(w => !w.removed)
       return this._workers.filter(w => w.isIdle && w.isReady)
     }
 
@@ -70,8 +60,10 @@ class Cluster {
       const hasJobs = jobsCount > 0
       const wantedWorkers = Math.min(this._cpus, jobsCount)
       const availableWorkers = this._getAvailableWorkers(wantedWorkers)
-      const jobs = TaskQueue.pull(availableWorkers.length)
-      jobs.forEach((job, i) => availableWorkers[i].startJob(job._id))
+      if (availableWorkers.length > 0) {
+        const jobs = TaskQueue.pull(availableWorkers.length)
+        jobs.forEach((job, i) => availableWorkers[i].startJob(job._id))
+      }
     }
 
     // initializing interval

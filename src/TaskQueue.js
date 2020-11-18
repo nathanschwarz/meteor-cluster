@@ -11,7 +11,7 @@ class MongoTaskQueue extends Mongo.Collection {
   addTask({ taskType, priority = 1, data = {}, _id = null }, cb = null) {
     Match.test(taskType, String)
     Match.test(priority, Match.Integer)
-    Match.test(data, Object)
+    Match.test(data, Match.Object)
     let doc = { taskType, priority, data, createdAt: new Date(), onGoing: false }
     if (_id != null) {
       doc._id = _id
@@ -21,39 +21,32 @@ class MongoTaskQueue extends Mongo.Collection {
   pull(limit = 1) {
     return this.find({ onGoing: false }, { limit, sort: { priority: -1, createdAt: 1 }}).fetch()
   }
-  execute(jobId) {
-    return new Promise((resolve, reject) => {
-      const begin = Date.now()
-      const job = this.findOne({ _id: jobId })
-      logger(`[${job.taskType}][${job._id}]: started`)
-      try {
-        const task = super.taskMap[job.taskType](job)
-        task.then(() => {
-          const end = Date.now()
-          const totalTime = end - begin
-          this.remove({ _id: jobId })
-          logger(`[${job.taskType}][${job._id}]: took ${totalTime}ms`)
-          resolve()
-        })
-      } catch (e) {
-        reject(e)
-      }
-    })
+  async execute(jobId) {
+    const begin = Date.now()
+    const job = this.findOne({ _id: jobId })
+    const log = logger.extend(job.taskType).extend(job._id).extend('\t')
+    log('started')
+    await this.taskMap[job.taskType](job)
+    const end = Date.now()
+    const totalTime = end - begin
+    this.remove({ _id: jobId })
+    log(`done in ${totalTime}ms`)
   }
   registerTaskMap(map = {}) {
     this.taskMap = map
   }
+  _setIndexes() {
+    this.rawCollection().createIndex({ taskType: 1 })
+    this.rawCollection().createIndex({ onGoing: 1 })
+    this.rawCollection().createIndex({ priority: -1, createdAt: 1 })
+  }
   count() {
-    return super.find({ onGoing: false }).count()
+    return this.find({ onGoing: false }).count()
   }
 }
 
 const TaskQueue = new MongoTaskQueue('taskQueue')
 
-Meteor.startup(() => {
-  TaskQueue.rawCollection().createIndex({ taskType: 1 })
-  TaskQueue.rawCollection().createIndex({ onGoing: 1 })
-  TaskQueue.rawCollection().createIndex({ priority: -1, createdAt: 1 })
-})
+Meteor.startup(() => TaskQueue._setIndexes())
 
 export default TaskQueue
