@@ -11,3 +11,7 @@ Package.onUse((api) => {
   api.use([ 'ecmascript' ])
   api.mainModule('src/index.js', 'server')
 })
+
+Npm.depends({
+  debug: '4.2.0'
+})

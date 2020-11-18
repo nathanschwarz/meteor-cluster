@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor'
 import TaskQueue from './TaskQueue'
 import { WORKER_STATUSES, ClusterWorker } from './Worker'
+import { warnLogger, errorLogger } from './logs'
 
 const cluster = require('cluster')
 const process = require('process')
@@ -23,10 +24,10 @@ class Cluster {
   }
   _init({ port = 3008, maxAvailableWorkers = MAX_CPUS, refreshRate = 1000 }) {
     if (maxAvailableWorkers > MAX_CPUS) {
-      console.warn(`cannot have ${maxAvailableWorkers} workers, setting max system available: ${MAX_CPUS}`)
+      warnLogger(`cannot have ${maxAvailableWorkers} workers, setting max system available: ${MAX_CPUS}`)
       this._cpus = MAX_CPUS
     } else if (maxAvailableWorkers <= 0) {
-      console.warn(`cannot have ${maxAvailableWorkers} workers, setting initial value to 1`)
+      warnLogger(`cannot have ${maxAvailableWorkers} workers, setting initial value to 1`)
       this._cpus = 1
     }
     this._port = port
@@ -43,7 +44,7 @@ class Cluster {
         return worker.onJobEnd()
       } else if (WORKER_STATUSES.IDLE_ERROR) {
         worker.onJobEnd()
-        console.error(msg.error)
+        errorLogger(msg.error)
       }
     }
     cluster.on('listenning', this.onListening)

@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor'
 import { Mongo } from 'meteor/mongo'
 import { Match } from 'meteor/check'
+import { logger } from './logs'
 
 class MongoTaskQueue extends Mongo.Collection {
   constructor(props) {
@@ -24,13 +25,15 @@ class MongoTaskQueue extends Mongo.Collection {
     return new Promise((resolve, reject) => {
       const begin = Date.now()
       const job = this.findOne({ _id: jobId })
+      logger(`[${job.taskType}][${job._id}]: started`)
       try {
         const task = super.taskMap[job.taskType](job)
         task.then(() => {
           const end = Date.now()
           const totalTime = end - begin
-          //TODO logger
-          resolve(this.remove({ _id: jobId }))
+          this.remove({ _id: jobId })
+          logger(`[${job.taskType}][${job._id}]: took ${totalTime}ms`)
+          resolve()
         })
       } catch (e) {
         reject(e)
