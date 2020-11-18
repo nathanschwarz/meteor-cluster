@@ -9,6 +9,7 @@ Package.describe({
 Package.onUse((api) => {
   api.versionsFrom('1.9')
   api.use('check')
+  api.use('meteor')
   api.addFiles('src/TaskQueue.js', 'server');
   api.addFiles('src/Worker.js', 'server');
   api.addFiles('src/Cluster.js', 'server');
