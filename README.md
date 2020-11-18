@@ -22,7 +22,7 @@ It can run synchronous and asynchronous tasks.
 
   on the Worker it :
   - starts the job
-  - once the job is done, it removes the task from the queue
+  - removes the task from the queue once the job is done
 
   `Cluster.isMaster()`: `true` if this process is the master<br/>
   `Cluster.maxWorkers()`: returns the maximum number of workers available at the same time<br/>
