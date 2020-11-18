@@ -49,8 +49,8 @@ class ClusterWorker {
     this.isIdle = true
     this.isReady = false
   }
-  register() {
-    this.worker = cluster.fork()
+  register(env) {
+    this.worker = cluster.fork(env)
     this.worker.on('message', ClusterWorker.onMessage)
     this.worker.on('disconnect', ClusterWorker.onDisconnect)
   }

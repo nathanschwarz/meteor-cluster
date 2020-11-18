@@ -54,7 +54,7 @@ class Cluster {
       if (workerToCreate > 0) {
         for (let i = 0; i < workerToCreate; i++) {
           const worker = new ClusterWorker()
-          worker.register()
+          worker.register({ PORT: this.port })
           this._workers.push(worker)
         }
       } else {
