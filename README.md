@@ -16,10 +16,10 @@ It can run synchronous and asynchronous tasks.
   `Cluster.isMaster()`: `true` if this process is the master<br/>
   `Cluster.maxWorkers()`: returns the maximum number of workers available at the same time<br/>
 
-  `constructor(taskMap: Object, masterOptions: { port: Integer, maxAvailableWorkers: Integer, refreshRate: Integer })`
+  `constructor(taskMap: Object, { port: Integer, maxAvailableWorkers: Integer, refreshRate: Integer })`
   - `maxAvailableWorkers`: maximum number of child process (cores), default set to maximum
   - `port`: server port for child process servers, default set to `3008`
-  - `refreshRate`: Worker pool refresh rate, default set to `1000`
+  - `refreshRate`: Worker pool refresh rate (in ms), default set to `1000`
   - `taskMap`: a map of functions associated to a `taskType`
 
   `Cluster` is the WorkerPool Handler<br/><br/>
