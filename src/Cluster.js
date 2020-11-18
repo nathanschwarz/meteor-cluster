@@ -68,7 +68,7 @@ class Cluster {
       const jobsCount = TaskQueue.count()
       const hasJobs = jobsCount > 0
       const wantedWorkers = Math.min(this._cpus, jobsCount)
-      const availableWorkers = this.getAvailableWorkers(wantedWorkers)
+      const availableWorkers = this._getAvailableWorkers(wantedWorkers)
       const jobs = TaskQueue.pull(availableWorkers.length)
       jobs.forEach((job, i) => availableWorkers[i].startJob(job._id))
     }
@@ -85,3 +85,5 @@ class Cluster {
     this.setRefreshRate(refreshRate)
   }
 }
+
+export default Cluster
