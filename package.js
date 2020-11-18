@@ -17,8 +17,9 @@ Package.registerBuildPlugin({
 Package.onUse((api) => {
   api.versionsFrom('1.9')
   api.use('check')
-  api.addFiles('src/Cluster.js', 'server');
   api.addFiles('src/TaskQueue.js', 'server');
+  api.addFiles('src/Worker.js', 'server');
+  api.addFiles('src/Cluster.js', 'server');
   api.export('TaskQueue', 'server');
   api.export('Cluster', 'server');
 })
