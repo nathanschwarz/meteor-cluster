@@ -19,6 +19,7 @@ It can run synchronous and asynchronous tasks.
   - verifies if workers are available, or create them
   - dispatches jobs to the workers
   - closes the workers when no jobs are available
+
   on the Worker it :
   - starts the job
   - once the job is done, it removes the task from the queue
