@@ -14,7 +14,7 @@ It can run synchronous and asynchronous tasks.
 
 # Cluster
   `Cluster` is the WorkerPool Handler<br/><br/>
-  on the Master it
+  on the Master it :
   - verifies if jobs are in the queue
   - verifies if workers are available, or create them
   - dispatches jobs to the workers
