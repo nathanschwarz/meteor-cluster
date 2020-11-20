@@ -12,7 +12,7 @@ It can run synchronous and asynchronous tasks.
   - `_id` is optional
 
 # Cluster
-  `Cluster` is the WorkerPool Handler<br/><br/>
+  `Cluster` is an isomorphic class to handle both the Worker and the Master<br/><br/>
   on the Master it :
   - verifies if jobs are in the queue
   - verifies if workers are available, or create them
@@ -37,6 +37,8 @@ It can run synchronous and asynchronous tasks.
 
   `setRefreshRate(refreshRate: Integer)`: change the refresh rate on the master
 
+  if the Master process crashes or restarts, all the unfinished jobs will be restarted from the beginning.<br/>
+  Each job is logged when started / finished with the format : `${timestamp}:task:${taskType}:${taskId}`<br/>
 
 # basic usage
 
