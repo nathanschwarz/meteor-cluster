@@ -60,6 +60,7 @@ class ClusterWorker {
   }
   startJob(jobId) {
     this.isIdle = false
+    TaskQueue.update({ _id: jobId }, { $set: { onGoing: true }})
     this.worker.send(jobId)
   }
   close() {

@@ -9,14 +9,17 @@ class MongoTaskQueue extends Mongo.Collection {
     this.taskMap = {}
   }
   addTask({ taskType, priority = 1, data = {}, _id = null }, cb = null) {
-    Match.test(taskType, String)
-    Match.test(priority, Match.Integer)
-    Match.test(data, Match.Object)
-    let doc = { taskType, priority, data, createdAt: new Date(), onGoing: false }
-    if (_id != null) {
-      doc._id = _id
-    }
-    return this.insert(doc, cb)
+    Meteor.setTimeout(() => {
+      Match.test(taskType, String)
+      Match.test(priority, Match.Integer)
+      Match.test(data, Match.Object)
+      let doc = { taskType, priority, data, createdAt: new Date(), onGoing: false }
+      if (_id != null) {
+        doc._id = _id
+      }
+      return this.insert(doc, cb)
+    }, 0)
+
   }
   pull(limit = 1) {
     return this.find({ onGoing: false }, { limit, sort: { priority: -1, createdAt: 1 }}).fetch()
