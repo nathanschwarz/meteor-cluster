@@ -20,11 +20,16 @@ class Cluster {
       if (cluster.isMaster) {
         this._init(masterProps)
       } else {
+        // register listeners if this process is a worker
         process.on('message', ClusterWorker.onMessage)
         process.on('disconnect', ClusterWorker.onDisconnect)
       }
     })
   }
+  /*
+    @params (masterProps: { port: Integer, maxAvailableWorkers: Integer, refreshRate: Integer })
+    initialize Cluster on the master
+  */
   _init({ port = 3008, maxAvailableWorkers = MAX_CPUS, refreshRate = 1000 }) {
     if (maxAvailableWorkers > MAX_CPUS) {
       warnLogger(`cannot have ${maxAvailableWorkers} workers, setting max system available: ${MAX_CPUS}`)
@@ -37,9 +42,20 @@ class Cluster {
     }
     this._port = port
     this._workers = []
+
+    // find worker by process id
     this.getWorkerIndex = (id) =>this._workers.findIndex(w => w.id === id)
     this.getWorker = (id) => this._workers[this.getWorkerIndex(id)]
 
+    // update all previous undone task, to restart them (if the master server has crashed or was stopped)
+    TaskQueue.update({ onGoing: true }, { $set: { onGoing: false }})
+
+    /*
+      @params (wantedWorkers: Integer)
+      add workers if tasks > current workers
+      remove workers if tasks < current workers
+      @returns non idle workers
+    */
     this._getAvailableWorkers = (wantedWorkers) => {
       const workerToCreate = wantedWorkers - this._workers.length
       if (workerToCreate > 0) {
@@ -55,6 +71,12 @@ class Cluster {
       return this._workers.filter(w => w.isIdle && w.isReady)
     }
 
+    /*
+      called at the interval set by Cluster.setRefreshRate
+      gets jobs from the list
+      gets available workers
+      dispatch the jobs to the workers
+    */
     this._run = () => {
       const jobsCount = TaskQueue.count()
       const hasJobs = jobsCount > 0
@@ -68,6 +90,11 @@ class Cluster {
 
     // initializing interval
     this.interval = null
+
+    /*
+      @params (delay: Integer)
+      set the refresh rate at which Cluster._run is called
+    */
     this.setRefreshRate = (delay) => {
       if (this.interval != null) {
         Meteor.clearInterval(this.interval)
