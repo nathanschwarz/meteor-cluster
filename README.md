@@ -18,11 +18,12 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
   - verifies if jobs are in the queue
   - verifies if workers are available, or create them
   - dispatches jobs to the workers
+  - removes the task from the queue once the job is done
   - closes the workers when no jobs are available
 
   on the Worker it :
   - starts the job
-  - removes the task from the queue once the job is done
+  - when the job's done, tell the Master that it's available and to remove previous task.
 
   ## prototype
 
