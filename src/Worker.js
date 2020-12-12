@@ -34,7 +34,7 @@ class ClusterWorker {
     const msg = { jobId, status: WORKER_STATUSES.IDLE }
     ClusterWorker.sendMsg(msg)
   }
-  static onJobFailed(error) {
+  static onJobFailed(error, jobId) {
     const msg = { jobId, status: WORKER_STATUSES.IDLE_ERROR, error: error }
     ClusterWorker.sendMsg(msg)
   }
