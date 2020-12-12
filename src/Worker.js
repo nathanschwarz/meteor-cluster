@@ -60,10 +60,12 @@ class ClusterWorker {
     this.worker.on('message', (msg) => this.onMessage(msg))
     this.worker.on('exit', () => this.onExit())
   }
-  startJob(jobId) {
+  startJob(job) {
     this.isIdle = false
-    TaskQueue.update({ _id: jobId }, { $set: { onGoing: true }})
-    this.worker.send(jobId)
+    if (typeof job === 'string') {
+      TaskQueue.update({ _id: job }, { $set: { onGoing: true }})
+    }
+    this.worker.send(job)
   }
   close() {
     if (this.worker === null) {

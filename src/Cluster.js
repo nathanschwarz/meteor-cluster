@@ -84,7 +84,7 @@ class Cluster {
       const availableWorkers = this._getAvailableWorkers(wantedWorkers)
       if (availableWorkers.length > 0) {
         const jobs = TaskQueue.pull(availableWorkers.length)
-        jobs.forEach((job, i) => availableWorkers[i].startJob(job._id))
+        jobs.forEach((job, i) => availableWorkers[i].startJob(job))
       }
     }
 
