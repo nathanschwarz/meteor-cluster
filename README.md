@@ -26,11 +26,12 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
 
   ## prototype
 
-  `constructor(taskMap: Object, { port: Integer, maxAvailableWorkers: Integer, refreshRate: Integer })`
+  `constructor(taskMap: Object, { port: Integer, maxAvailableWorkers: Integer, refreshRate: Integer, inMemoryOnly: Boolean })`
+  - `taskMap`: a map of functions associated to a `taskType`
   - `maxAvailableWorkers`: maximum number of child process (cores), default set to maximum
   - `port`: server port for child process servers, default set to `3008`
   - `refreshRate`: Worker pool refresh rate (in ms), default set to `1000`
-  - `taskMap`: a map of functions associated to a `taskType`
+  - `inMemoryOnly`: force the cluster to only pull jobs from the in-memory task queue.
 
   `Cluster.isMaster()`: `true` if this process is the master<br/>
 
