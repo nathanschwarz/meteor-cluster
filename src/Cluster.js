@@ -27,10 +27,10 @@ class Cluster {
     })
   }
   /*
-    @params (masterProps: { port: Integer, maxAvailableWorkers: Integer, refreshRate: Integer })
+    @params (masterProps: { port: Integer, maxAvailableWorkers: Integer, refreshRate: Integer, inMemoryOnly: Boolean })
     initialize Cluster on the master
   */
-  _init({ port = 3008, maxAvailableWorkers = MAX_CPUS, refreshRate = 1000 }) {
+  _init({ port = 3008, maxAvailableWorkers = MAX_CPUS, refreshRate = 1000, inMemoryOnly = false }) {
     if (maxAvailableWorkers > MAX_CPUS) {
       warnLogger(`cannot have ${maxAvailableWorkers} workers, setting max system available: ${MAX_CPUS}`)
       this._cpus = MAX_CPUS
@@ -42,6 +42,7 @@ class Cluster {
     }
     this._port = port
     this._workers = []
+    this.inMemoryOnly = inMemoryOnly
 
     // find worker by process id
     this.getWorkerIndex = (id) =>this._workers.findIndex(w => w.id === id)
@@ -78,12 +79,12 @@ class Cluster {
       dispatch the jobs to the workers
     */
     this._run = () => {
-      const jobsCount = TaskQueue.count()
+      const jobsCount = TaskQueue.count(this.inMemoryOnly)
       const hasJobs = jobsCount > 0
       const wantedWorkers = Math.min(this._cpus, jobsCount)
       const availableWorkers = this._getAvailableWorkers(wantedWorkers)
       if (availableWorkers.length > 0) {
-        const jobs = TaskQueue.pull(availableWorkers.length)
+        const jobs = TaskQueue.pull(availableWorkers.length, this.inMemoryOnly)
         jobs.forEach((job, i) => availableWorkers[i].startJob(job))
       }
     }

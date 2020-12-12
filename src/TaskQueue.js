@@ -56,9 +56,9 @@ class MongoTaskQueue extends Mongo.Collection {
       return this.remove({ _id: taskId })
     })
   }
-  pull(limit = 1) {
+  pull(limit = 1, inMemoryOnly = false) {
     const availableInMemoryTasks = this.inMemory.filter(task => task.onGoing === false)
-    if (availableInMemoryTasks.length > 0) {
+    if (availableInMemoryTasks.length > 0 || inMemoryOnly) {
       return this._inMemoryPull(availableInMemoryTasks, limit)
     }
     return this.find({ onGoing: false }, { limit, sort: { priority: -1, createdAt: 1 }}).fetch().map(i => i._id)
@@ -71,8 +71,8 @@ class MongoTaskQueue extends Mongo.Collection {
     this.rawCollection().createIndex({ onGoing: 1 })
     this.rawCollection().createIndex({ priority: -1, createdAt: 1 })
   }
-  count() {
-    if (this.inMemory.length > 0) {
+  count(inMemoryOnly = false) {
+    if (this.inMemory.length > 0 || inMemoryOnly) {
       return this.inMemory.length
     }
     return this.find({ onGoing: false }).count()
