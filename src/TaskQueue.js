@@ -72,8 +72,9 @@ class MongoTaskQueue extends Mongo.Collection {
     this.rawCollection().createIndex({ priority: -1, createdAt: 1 })
   }
   count(inMemoryOnly = false) {
-    if (this.inMemory.length > 0 || inMemoryOnly) {
-      return this.inMemory.length
+    const availableInMemoryTasks = this.inMemory.filter(task => task.onGoing === false)
+    if (availableInMemoryTasks.length > 0 || inMemoryOnly) {
+      return availableInMemoryTasks.length
     }
     return this.find({ onGoing: false }).count()
   }

@@ -1,6 +1,6 @@
 Package.describe({
   name: 'nschwarz:cluster',
-  version: '1.0.4',
+  version: '1.0.5',
   summary: 'native nodejs clusterization for meteor server',
   git: 'https://github.com/nathanschwarz/meteor-cluster.git',
   documentation: 'README.md'
