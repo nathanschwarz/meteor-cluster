@@ -20,21 +20,22 @@ class ClusterWorker {
     process.send(msg)
   }
   // worker events
-  static onMessage(jobId) {
-    TaskQueue.execute(jobId)
-    .then(ClusterWorker.onJobDone)
-    .catch(ClusterWorker.onJobFailed)
+  static onMessage(job) {
+    const jobId = job._id || job
+    TaskQueue.execute(job)
+    .then(() => ClusterWorker.onJobDone(jobId))
+    .catch((error) => ClusterWorker.onJobFailed(error, jobId))
   }
   static onDisconnect() {
     process.exit(0)
   }
   // job events
-  static onJobDone() {
-    const msg = { status: WORKER_STATUSES.IDLE }
+  static onJobDone(jobId) {
+    const msg = { jobId, status: WORKER_STATUSES.IDLE }
     ClusterWorker.sendMsg(msg)
   }
   static onJobFailed(error) {
-    const msg = { status: WORKER_STATUSES.IDLE_ERROR, error: error }
+    const msg = { jobId, status: WORKER_STATUSES.IDLE_ERROR, error: error }
     ClusterWorker.sendMsg(msg)
   }
   // Master processes
@@ -44,6 +45,7 @@ class ClusterWorker {
   onMessage(msg) {
     if (msg.status === WORKER_STATUSES.IDLE) {
       this.isIdle = true
+      TaskQueue.removeTask(msg.jobId)
     } else if (msg.status === WORKER_STATUSES.IDLE_ERROR) {
       this.isIdle = true
       errorLogger(msg.error)
