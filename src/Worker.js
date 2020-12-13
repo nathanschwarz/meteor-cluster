@@ -29,7 +29,12 @@ class ClusterWorker {
     ClusterWorker.sendMsg(msg)
   }
   static onJobFailed(error, taskId) {
-    const msg = { taskId, status: WORKER_STATUSES.IDLE_ERROR, error: error }
+    const msg = { taskId, status: WORKER_STATUSES.IDLE_ERROR, error: {
+      message: error.message,
+      stack: error.stack,
+      type: error.type,
+      arguments: error.arguments
+    }}
     ClusterWorker.sendMsg(msg)
   }
   constructor(onRemove) {
