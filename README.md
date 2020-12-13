@@ -18,8 +18,7 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
   - `inMemory` is optional, default is set to `false`
 
   On the Master only :<br>
-
-    Event listeners :<br>
+    Event listeners :
 
     `TaskQueue.addEventListener(eventType: String, callback: function)`
     - `eventType` is one of `[ 'done', 'error' ]`
