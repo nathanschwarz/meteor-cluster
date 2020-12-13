@@ -1,7 +1,6 @@
 const cluster = require('cluster')
 const process = require('process')
 import TaskQueue from './TaskQueue'
-import { errorLogger } from './logs'
 
 const WORKER_STATUSES = {
   IDLE: 0,
@@ -9,12 +8,7 @@ const WORKER_STATUSES = {
 }
 
 class ClusterWorker {
-  constructor(onRemove) {
-    this.isIdle = true
-    this.isReady = false
-    this.removed = false
-    this.worker = null
-  }
+  // sends an identifyed msg to the Master
   static sendMsg(workerStatus) {
     const msg = { id: [cluster.worker.id], ...workerStatus }
     process.send(msg)
@@ -38,9 +32,19 @@ class ClusterWorker {
     const msg = { jobId, status: WORKER_STATUSES.IDLE_ERROR, error: error }
     ClusterWorker.sendMsg(msg)
   }
+  constructor(onRemove) {
+    this.isIdle = true
+    this.isReady = false
+    this.removed = false
+    this.worker = null
+  }
   // Master processes
+  // events
   onListening() {
     this.isReady = true
+  }
+  onExit() {
+    this.removed = true
   }
   onMessage(msg) {
     if (msg.status === WORKER_STATUSES.IDLE) {
@@ -48,11 +52,8 @@ class ClusterWorker {
       TaskQueue.onJobDone(result, msg.jobId)
     } else if (msg.status === WORKER_STATUSES.IDLE_ERROR) {
       this.isIdle = true
-      errorLogger(msg.error)
+      TaskQueue.onJobError(msg.error, msg.jobId)
     }
-  }
-  onExit() {
-    this.removed = true
   }
   register(env) {
     this.worker = cluster.fork(env)

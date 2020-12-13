@@ -1,61 +1,27 @@
 import { Meteor } from 'meteor/meteor'
-import { Random } from 'meteor/random'
 import { Mongo } from 'meteor/mongo'
 import { Match } from 'meteor/check'
 
 const cluster = require('cluster')
 
-import InMemoryJobHelper from './InMemoryJobHelper'
-import { logger } from './logs'
-
-class InMemoryTaskQueue {
-  constructor() {
-    this._data = []
-  }
-  _findIndex(_id) {
-    return this._data.findIndex(job => job._id === taskId)
-  }
-  _pull(limit) {
-    const availableTasks = this.availableTasks()
-    let res = []
-    for (let i = 0; i < availableTasks.length && res.length < limit; i++) {
-      availableTasks[i].onGoing = true
-      res = [ ...res, availableTasks[i] ]
-    }
-    return res
-  }
-  insert(doc) {
-    this._data = [ ...this._data, doc ].sort(InMemoryJobHelper.compare)
-  }
-  findById(_id) {
-    const _idx = this._findInMemoryIdx(_id)
-    if (_idx === -1) {
-      return undefined
-    }
-    return this._data[_idx]
-  }
-  removeById(_id) {
-    const _idx = this._findInMemoryIdx(_id)
-    if (_idx === -1) {
-      return undefined
-    }
-    return this._data.splice(idx, 1)
-  },
-  availableTasks() {
-    return this._data.filter(job => !job.onGoing)
-  }
-  count() {
-    return this.availableTasks().length
-  }
-}
+import InMemoryTaskQueue from './InMemoryTaskQueue'
+import { logger, errorLogger } from './logs'
 
 class MongoTaskQueue extends Mongo.Collection {
+  // verify that the collection indexes are set
+  static _setIndexes() {
+    MongoTaskQueue.rawCollection().createIndex({ taskType: 1 })
+    MongoTaskQueue.rawCollection().createIndex({ onGoing: 1 })
+    MongoTaskQueue.rawCollection().createIndex({ priority: -1, createdAt: 1 })
+  }
   constructor(props) {
     super(props)
     this.taskMap = {}
     if (cluster.isMaster) {
+      Meteor.startup(MongoTaskQueue._setIndexes)
       this.inMemory = new InMemoryTaskQueue()
-      // EVENTS
+
+      // event listeners
       this.listeners = {
         onDone: null,
         onError: null
@@ -66,11 +32,12 @@ class MongoTaskQueue extends Mongo.Collection {
         }
       }
       this.removeEventListener = (type) => this.addEventListener(type,  null)
+
+      // remove the job from the queue when completed, pass the result to the onDone listener
       this.onJobDone = (result, taskId) => Meteor.wrapAsync(async () => {
           let doc = null
           if (taskId.startsWith('inMemory_')) {
-            const idx = this.findInMemory(taskId)
-            doc =
+            doc = this.inMemory.removeById(taskId)
           } else {
             doc = await this.rawCollection().findOneAndDelete({ _id: taskId })
           }
@@ -80,6 +47,24 @@ class MongoTaskQueue extends Mongo.Collection {
           return doc._id
         }
       )
+
+      // log job errors to the error stream, pass the error and the task to the onError listener
+      this.onJobError = (error, taskId) => Meteor.wrapAsync(async () => {
+          let doc = null
+          if (taskId.startsWith('inMemory_')) {
+            doc = this.inMemory.findById(taskId)
+          } else {
+            doc = this.findOne({ _id: taskId })
+          }
+          if (this.listeners.onError !== null) {
+            this.listeners.onError({ error, task: doc })
+          }
+          errorLogger(error)
+          return doc._id
+        }
+      )
+
+      // pull available jobs from the queue
       this.pull = (limit = 1, inMemoryOnly = false) => {
         const inMemoryCount = this.inMemory.count()
         if (inMemoryCount > 0 || inMemoryOnly) {
@@ -87,7 +72,9 @@ class MongoTaskQueue extends Mongo.Collection {
         }
         return this.find({ onGoing: false }, { limit, sort: { priority: -1, createdAt: 1 }}).fetch().map(i => i._id)
       }
-      this.count = (inMemoryOnly = false)  => {
+
+      // count available jobs (onGoing: false)
+      this.count = (inMemoryOnly = false) => {
         const inMemoryCount = this.inMemory.count()
         if (inMemoryCount > 0 || inMemoryOnly) {
           return inMemoryCount
@@ -95,8 +82,8 @@ class MongoTaskQueue extends Mongo.Collection {
         return this.find({ onGoing: false }).count()
       }
     } else {
-      // CHILD PROCESS
-      this.execute = async function(job) {
+      // execute the task on the child process
+      this.execute = async (job) => {
         const begin = Date.now()
         const isInMemory = typeof(job) === 'object'
         const task = isInMemory ? job : this.findOne({ _id: job })
@@ -127,21 +114,12 @@ class MongoTaskQueue extends Mongo.Collection {
         if (!cluster.isMaster) {
           throw new Error('cannot start inMemory job from child process')
         }
-        doc._id = `inMemory_${Random.id()}`
         return this.inMemory.insert(doc)
       }
       return this.insert(doc, cb)
     }, 0)
   }
-  _setIndexes() {
-    this.rawCollection().createIndex({ taskType: 1 })
-    this.rawCollection().createIndex({ onGoing: 1 })
-    this.rawCollection().createIndex({ priority: -1, createdAt: 1 })
-  }
 }
 
 const TaskQueue = new MongoTaskQueue('taskQueue')
-
-Meteor.startup(() => TaskQueue._setIndexes())
-
 export default TaskQueue
