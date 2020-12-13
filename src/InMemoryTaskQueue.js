@@ -20,7 +20,7 @@ class InMemoryTaskQueue {
     this._data = []
   }
   _findIndex(_id) {
-    return this._data.findIndex(job => job._id === taskId)
+    return this._data.findIndex(job => job._id === _id)
   }
   insert(doc) {
     doc._id = `inMemory_${Random.id()}`
@@ -34,11 +34,11 @@ class InMemoryTaskQueue {
     return this._data[_idx]
   }
   removeById(_id) {
-    const _idx = this._findIndex(_id)
-    if (_idx === -1) {
+    const idx = this._findIndex(_id)
+    if (idx === -1) {
       return undefined
     }
-    return this._data.splice(idx, 1)
+    return this._data.splice(idx, 1)[0]
   }
   // get available jobs (onGoing: false)
   availableTasks() {

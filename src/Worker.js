@@ -14,22 +14,22 @@ class ClusterWorker {
     process.send(msg)
   }
   // worker events
-  static onMessage(job) {
-    const jobId = job._id || job
-    TaskQueue.execute(job)
-    .then((res) => ClusterWorker.onJobDone(res, jobId))
-    .catch((error) => ClusterWorker.onJobFailed(error, jobId))
+  static onMessage(task) {
+    const taskId = task._id || task
+    TaskQueue.execute(task)
+    .then((res) => ClusterWorker.onJobDone(res, taskId))
+    .catch((error) => ClusterWorker.onJobFailed(error, taskId))
   }
   static onDisconnect() {
     process.exit(0)
   }
-  // job events
-  static onJobDone(result, jobId) {
-    const msg = { result, jobId, status: WORKER_STATUSES.IDLE }
+  // task events
+  static onJobDone(result, taskId) {
+    const msg = { result, taskId, status: WORKER_STATUSES.IDLE }
     ClusterWorker.sendMsg(msg)
   }
-  static onJobFailed(error, jobId) {
-    const msg = { jobId, status: WORKER_STATUSES.IDLE_ERROR, error: error }
+  static onJobFailed(error, taskId) {
+    const msg = { taskId, status: WORKER_STATUSES.IDLE_ERROR, error: error }
     ClusterWorker.sendMsg(msg)
   }
   constructor(onRemove) {
@@ -49,10 +49,10 @@ class ClusterWorker {
   onMessage(msg) {
     if (msg.status === WORKER_STATUSES.IDLE) {
       this.isIdle = true
-      TaskQueue.onJobDone(msg.result, msg.jobId)
+      TaskQueue.onJobDone({ result: msg.result, taskId: msg.taskId })
     } else if (msg.status === WORKER_STATUSES.IDLE_ERROR) {
       this.isIdle = true
-      TaskQueue.onJobError(msg.error, msg.jobId)
+      TaskQueue.onJobError({ error: msg.error, taskId: msg.taskId })
     }
   }
   register(env) {
@@ -61,12 +61,12 @@ class ClusterWorker {
     this.worker.on('message', (msg) => this.onMessage(msg))
     this.worker.on('exit', () => this.onExit())
   }
-  startJob(job) {
+  startJob(task) {
     this.isIdle = false
-    if (typeof job === 'string') {
-      TaskQueue.update({ _id: job }, { $set: { onGoing: true }})
+    if (typeof task === 'string') {
+      TaskQueue.update({ _id: task }, { $set: { onGoing: true }})
     }
-    this.worker.send(job)
+    this.worker.send(task)
   }
   close() {
     if (this.worker === null) {

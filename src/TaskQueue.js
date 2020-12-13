@@ -34,35 +34,33 @@ class MongoTaskQueue extends Mongo.Collection {
       this.removeEventListener = (type) => this.addEventListener(type,  null)
 
       // remove the job from the queue when completed, pass the result to the done listener
-      this.onJobDone = (result, taskId) => Meteor.wrapAsync(async () => {
-          let doc = null
-          if (taskId.startsWith('inMemory_')) {
-            doc = this.inMemory.removeById(taskId)
-          } else {
-            doc = await this.rawCollection().findOneAndDelete({ _id: taskId })
-          }
-          if (this.listeners.done !== null) {
-            this.listeners.onDone({ result, task: doc })
-          }
-          return doc._id
+      this.onJobDone = async ({ result, taskId }) => {
+        let doc = null
+        if (taskId.startsWith('inMemory_')) {
+          doc = this.inMemory.removeById(taskId)
+        } else {
+          doc = await this.rawCollection().findOneAndDelete({ _id: taskId })
         }
-      )
+        if (this.listeners.done !== null) {
+          this.listeners.done({ result, task: doc })
+        }
+        return doc._id
+      }
 
       // log job errors to the error stream, pass the error and the task to the error listener
-      this.onJobError = (error, taskId) => Meteor.wrapAsync(async () => {
-          let doc = null
-          if (taskId.startsWith('inMemory_')) {
-            doc = this.inMemory.findById(taskId)
-          } else {
-            doc = this.findOne({ _id: taskId })
-          }
-          if (this.listeners.error !== null) {
-            this.listeners.onError({ error, task: doc })
-          }
-          errorLogger(error)
-          return doc._id
+      this.onJobError = ({ error, taskId }) => {
+        let doc = null
+        if (taskId.startsWith('inMemory_')) {
+          doc = this.inMemory.findById(taskId)
+        } else {
+          doc = this.findOne({ _id: taskId })
         }
-      )
+        if (this.listeners.error !== null) {
+          this.listeners.error({ error, task: doc })
+        }
+        errorLogger(error)
+        return doc._id
+      }
 
       // pull available jobs from the queue
       this.pull = (limit = 1, inMemoryOnly = false) => {
