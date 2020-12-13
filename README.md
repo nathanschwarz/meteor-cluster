@@ -19,7 +19,6 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
 
   On the Master only :<br>
     Event listeners :
-
     `TaskQueue.addEventListener(eventType: String, callback: function)`
     - `eventType` is one of `[ 'done', 'error' ]`
     - `callback` is a function prototyped as `callback({ value: Any, task: Task })`, `value` contains the result / error.
@@ -30,15 +29,10 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
     note : you can only attach one event listener by eventType.<br><br>
 
     In-Memory Queue :<br>
-
     `TaskQueue.inMemory.findById(_id: String)`
-
     `TaskQueue.inMemory.removeById(_id: String)`
-
     `TaskQueue.inMemory.tasks()` : returns all in-memory tasks
-
     `TaskQueue.inMemory.availableTasks()` : returns available in-memory tasks
-
 
 # Cluster
   `Cluster` is an isomorphic class to handle both the Worker and the Master<br/><br/>
