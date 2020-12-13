@@ -4,6 +4,7 @@ Meteor Package enabling users to create a Worker Pool on the server to handle he
 It can run synchronous and asynchronous tasks from a persitent / in-memory queue.
 
 # TaskQueue
+
   `TaskQueue` is both a Mongodb and an in-memory backed job queue.<br>
   It enables to add, update, remove jobs consistently between processes.
   You can attach event listeners to handle the tasks results / errors<br>
@@ -17,7 +18,8 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
   - `_id` is optional
   - `inMemory` is optional, default is set to `false`<br>
 
-### Event listeners (Master only) :<br><br>
+### Event listeners (Master only) :
+
   `TaskQueue.addEventListener(eventType: String, callback: function)`
   - `eventType` is one of `[ 'done', 'error' ]`
   - `callback` is a function prototyped as `callback({ value: Any, task: Task })`, `value` contains the result / error.<br>
@@ -27,7 +29,8 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
 
   note : you can only attach one event listener by eventType.<br>
 
-### In-Memory Queue (Master only) :<br><br>
+### In-Memory Queue (Master only) :
+
   `TaskQueue.inMemory.findById(_id: String)`<br><br>
   `TaskQueue.inMemory.removeById(_id: String)`<br><br>
   `TaskQueue.inMemory.tasks()` : returns all in-memory tasks<br><br>
@@ -42,6 +45,7 @@ Both in-memory and persistent tasks are available at the same time, and can be u
 - if you use both in-memory and persistent tasks at the same time, the persistent tasks will be called only when no in-memory tasks are available (may change later).<br><br>
 
 # Cluster
+
   `Cluster` is an isomorphic class to handle both the Worker and the Master<br/><br/>
   on the Master it :
   - verifies if jobs are in the queue
@@ -54,7 +58,7 @@ Both in-memory and persistent tasks are available at the same time, and can be u
   - starts the job
   - when the job's done, tell the Master that it's available and to remove previous task.
 
-  ## prototype
+## prototype
 
   `constructor(taskMap: Object, { port: Integer, maxAvailableWorkers: Integer, refreshRate: Integer, inMemoryOnly: Boolean })`
   - `taskMap`: a map of functions associated to a `taskType`
