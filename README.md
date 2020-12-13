@@ -87,6 +87,22 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
     }, job.data.timeout))
   }
 
+  function onJobsDone({ value, task }) {
+    console.log('do something with the result')  
+  }
+
+  function onJobsError({ value, task }) {
+    console.log('do something with the error')
+  }
+
+  function syncTask() {
+    return TaskQueue.addTask({ taskType: 'SYNC', data: {}})
+  }
+
+  function asyncTask() {
+    return TaskQueue.addTask({ taskType: 'ASYNC', data: { timeout: 5000 }, priority: 6 })
+  }
+
   function inMemoryTask(priority, position) {
    return TaskQueue.addTask({ taskType: 'TEST', priority, data: { position }, inMemory: true })
   }
@@ -98,21 +114,16 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
   const cluster = new Cluster(taskMap)
   Meteor.startup(() => {
     if (Cluster.isMaster()) {
-      TaskQueue.addTask({ taskType: 'SYNC', data: {}})
-      TaskQueue.addTask({ taskType: 'ASYNC', data: { timeout: 5000 }, priority: 6 })    
+      TaskQueue.addEventListener('done', onJobsDone)
+      TaskQueue.addEventListener('error', onJobsError)
 
+      syncTask()
+      asyncTask()
       inMemoryTask(8, 1)
       inMemoryTask(1, 2)
-      inMemoryTask(3, 3)
-      inMemoryTask(8, 4)
-      inMemoryTask(8, 5)
 
       persistentTask(8, 1)
       persistentTask(1, 2)
-      persistentTask(3, 3)
-      persistentTask(8, 4)
-      persistentTask(8, 5)
-      persistentTask(8, 6)
     }
   })
 ```
