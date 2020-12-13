@@ -33,6 +33,14 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
   `TaskQueue.inMemory.tasks()` : returns all in-memory tasks<br><br>
   `TaskQueue.inMemory.availableTasks()` : returns available in-memory tasks<br><br>
 
+## note on the in-memory / persistent task queue
+
+Both in-memory and persistent tasks are available at the same time, and can be used altogether but :
+
+- in-memory tasks can only be created on the Master (which is because it's non persistent...)
+- in-memory tasks will always be called first over persistent tasks even if their respective `priority` are greater.
+- if you use both in-memory and persistent tasks at the same time, the persistent tasks will be called only when no in-memory tasks are available (may change later).<br><br>
+
 # Cluster
   `Cluster` is an isomorphic class to handle both the Worker and the Master<br/><br/>
   on the Master it :
@@ -119,11 +127,3 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
     }
   })
 ```
-
-# note on the in-memory / persistent task queue
-
-Both in-memory and persistent tasks are available at the same time, and can be used altogether but :
-
-- in-memory tasks can only be created on the Master (which is because it's non persistent...)
-- in-memory tasks will always be called first over persistent tasks even if their respective `priority` are greater.
-- if you use both in-memory and persistent tasks at the same time, the persistent tasks will be called only when no in-memory tasks are available (may change later).
