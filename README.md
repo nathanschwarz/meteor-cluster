@@ -15,11 +15,11 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
   - `data` is mandatory but you can pass an empty object
   - `priority` is mandatory, default is set to 1
   - `_id` is optional
-  - `inMemory` is optional, default is set to `false`
-  
-  Event listeners (Master only) :<br>
+  - `inMemory` is optional, default is set to `false`<br>
+
+  Event listeners (Master only) :<br><br>
   `TaskQueue.addEventListener(eventType: String, callback: function)`
-  - `eventType` is one of `[ 'done', 'error' ]`<br>
+  - `eventType` is one of `[ 'done', 'error' ]`
   - `callback` is a function prototyped as `callback({ value: Any, task: Task })`, `value` contains the result / error.<br>
 
   `TaskQueue.removeEventListener(eventType: String)`<br>
@@ -27,10 +27,10 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
 
   note : you can only attach one event listener by eventType.<br><br>
 
-  In-Memory Queue (Master only) :<br>
-  `TaskQueue.inMemory.findById(_id: String)`<br>
-  `TaskQueue.inMemory.removeById(_id: String)`<br>
-  `TaskQueue.inMemory.tasks()` : returns all in-memory tasks<br>
+  In-Memory Queue (Master only) :<br><br>
+  `TaskQueue.inMemory.findById(_id: String)`<br><br>
+  `TaskQueue.inMemory.removeById(_id: String)`<br><br>
+  `TaskQueue.inMemory.tasks()` : returns all in-memory tasks<br><br>
   `TaskQueue.inMemory.availableTasks()` : returns available in-memory tasks<br><br>
 
 # Cluster
