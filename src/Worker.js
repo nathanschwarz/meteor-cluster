@@ -49,7 +49,7 @@ class ClusterWorker {
   onMessage(msg) {
     if (msg.status === WORKER_STATUSES.IDLE) {
       this.isIdle = true
-      TaskQueue.onJobDone(result, msg.jobId)
+      TaskQueue.onJobDone(msg.result, msg.jobId)
     } else if (msg.status === WORKER_STATUSES.IDLE_ERROR) {
       this.isIdle = true
       TaskQueue.onJobError(msg.error, msg.jobId)

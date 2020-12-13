@@ -9,16 +9,16 @@ import { logger, errorLogger } from './logs'
 
 class MongoTaskQueue extends Mongo.Collection {
   // verify that the collection indexes are set
-  static _setIndexes() {
-    MongoTaskQueue.rawCollection().createIndex({ taskType: 1 })
-    MongoTaskQueue.rawCollection().createIndex({ onGoing: 1 })
-    MongoTaskQueue.rawCollection().createIndex({ priority: -1, createdAt: 1 })
+  _setIndexes() {
+    this.rawCollection().createIndex({ taskType: 1 })
+    this.rawCollection().createIndex({ onGoing: 1 })
+    this.rawCollection().createIndex({ priority: -1, createdAt: 1 })
   }
   constructor(props) {
     super(props)
     this.taskMap = {}
     if (cluster.isMaster) {
-      Meteor.startup(MongoTaskQueue._setIndexes)
+      Meteor.startup(() => this._setIndexes())
       this.inMemory = new InMemoryTaskQueue()
 
       // event listeners
