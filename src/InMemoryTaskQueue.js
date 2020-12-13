@@ -40,6 +40,10 @@ class InMemoryTaskQueue {
     }
     return this._data.splice(idx, 1)[0]
   }
+  // get all jobs
+  tasks() {
+    return this._data
+  }
   // get available jobs (onGoing: false)
   availableTasks() {
     return this._data.filter(job => !job.onGoing)

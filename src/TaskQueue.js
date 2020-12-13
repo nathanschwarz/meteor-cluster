@@ -29,6 +29,8 @@ class MongoTaskQueue extends Mongo.Collection {
       this.addEventListener = (type, cb) => {
         if (this.listeners[type] !== undefined) {
           this.listeners[type] = cb
+        } else {
+          throw new Error(`TaskQueue: can't listen to ${type} event doesn't exists`)
         }
       }
       this.removeEventListener = (type) => this.addEventListener(type,  null)
@@ -42,7 +44,7 @@ class MongoTaskQueue extends Mongo.Collection {
           doc = await this.rawCollection().findOneAndDelete({ _id: taskId })
         }
         if (this.listeners.done !== null) {
-          this.listeners.done({ result, task: doc })
+          this.listeners.done({ value: result, task: doc })
         }
         return doc._id
       }
@@ -56,7 +58,7 @@ class MongoTaskQueue extends Mongo.Collection {
           doc = this.findOne({ _id: taskId })
         }
         if (this.listeners.error !== null) {
-          this.listeners.error({ error, task: doc })
+          this.listeners.error({ value: error, task: doc })
         }
         errorLogger(error)
         return doc._id

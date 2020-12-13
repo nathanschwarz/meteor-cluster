@@ -4,13 +4,42 @@ Meteor Package enabling users to create a Worker Pool on the server to handle he
 It can run synchronous and asynchronous tasks from a persitent / in-memory queue.
 
 # TaskQueue
-  `TaskQueue` is a Mongodb backed job queue (or an in-memory queue when suited). It enables to add, update, remove jobs consistently between processes.<br><br>
+  `TaskQueue` is both a Mongodb and an in-memory backed job queue.<br>
+  It enables to add, update, remove jobs consistently between processes.
+  You can attach event listeners to handle the tasks results / errors<br><br>
+
+## prototype
+
   `TaskQueue.addTask({ taskType: String, data: Object, priority: Integer, _id: String, inMemory: Boolean })`
   - `taskType` is mandatory
   - `data` is mandatory but you can pass an empty object
   - `priority` is mandatory, default is set to 1
   - `_id` is optional
   - `inMemory` is optional, default is set to `false`
+
+  On the Master only :<br>
+
+    Event listeners :<br>
+
+    `TaskQueue.addEventListener(eventType: String, callback: function)`
+    - `eventType` is one of `[ 'done', 'error' ]`
+    - `callback` is a function prototyped as `callback({ value: Any, task: Task })`, `value` contains the result / error.
+
+    `TaskQueue.removeEventListener(eventType: String)`
+    - `eventType` is one of `[ 'done', 'error' ]`
+
+    note : you can only attach one event listener by eventType.<br><br>
+
+    In-Memory Queue :<br>
+
+    `TaskQueue.inMemory.findById(_id: String)`
+
+    `TaskQueue.inMemory.removeById(_id: String)`
+
+    `TaskQueue.inMemory.tasks()` : returns all in-memory tasks
+
+    `TaskQueue.inMemory.availableTasks()` : returns available in-memory tasks
+
 
 # Cluster
   `Cluster` is an isomorphic class to handle both the Worker and the Master<br/><br/>
