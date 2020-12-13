@@ -23,8 +23,8 @@ class MongoTaskQueue extends Mongo.Collection {
 
       // event listeners
       this.listeners = {
-        onDone: null,
-        onError: null
+        done: null,
+        error: null
       }
       this.addEventListener = (type, cb) => {
         if (this.listeners[type] !== undefined) {
@@ -33,7 +33,7 @@ class MongoTaskQueue extends Mongo.Collection {
       }
       this.removeEventListener = (type) => this.addEventListener(type,  null)
 
-      // remove the job from the queue when completed, pass the result to the onDone listener
+      // remove the job from the queue when completed, pass the result to the done listener
       this.onJobDone = (result, taskId) => Meteor.wrapAsync(async () => {
           let doc = null
           if (taskId.startsWith('inMemory_')) {
@@ -41,14 +41,14 @@ class MongoTaskQueue extends Mongo.Collection {
           } else {
             doc = await this.rawCollection().findOneAndDelete({ _id: taskId })
           }
-          if (this.listeners.onDone !== null) {
+          if (this.listeners.done !== null) {
             this.listeners.onDone({ result, task: doc })
           }
           return doc._id
         }
       )
 
-      // log job errors to the error stream, pass the error and the task to the onError listener
+      // log job errors to the error stream, pass the error and the task to the error listener
       this.onJobError = (error, taskId) => Meteor.wrapAsync(async () => {
           let doc = null
           if (taskId.startsWith('inMemory_')) {
@@ -56,7 +56,7 @@ class MongoTaskQueue extends Mongo.Collection {
           } else {
             doc = this.findOne({ _id: taskId })
           }
-          if (this.listeners.onError !== null) {
+          if (this.listeners.error !== null) {
             this.listeners.onError({ error, task: doc })
           }
           errorLogger(error)
