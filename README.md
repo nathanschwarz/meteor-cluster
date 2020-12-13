@@ -127,6 +127,7 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
     }
   })
 ```
+
 # note on the in-memory / persistent task queue
 
 Both in-memory and persistent tasks are available at the same time, and can be used altogether but :
