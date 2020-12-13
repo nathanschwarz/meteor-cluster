@@ -6,7 +6,7 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
 # TaskQueue
   `TaskQueue` is both a Mongodb and an in-memory backed job queue.<br>
   It enables to add, update, remove jobs consistently between processes.
-  You can attach event listeners to handle the tasks results / errors<br><br>
+  You can attach event listeners to handle the tasks results / errors<br>
 
 ## prototype
 
@@ -25,13 +25,13 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
   `TaskQueue.removeEventListener(eventType: String)`<br>
   - `eventType` is one of `[ 'done', 'error' ]`<br>
 
-  note : you can only attach one event listener by eventType.<br><br>
+  note : you can only attach one event listener by eventType.<br>
 
 ### In-Memory Queue (Master only) :<br><br>
   `TaskQueue.inMemory.findById(_id: String)`<br><br>
   `TaskQueue.inMemory.removeById(_id: String)`<br><br>
   `TaskQueue.inMemory.tasks()` : returns all in-memory tasks<br><br>
-  `TaskQueue.inMemory.availableTasks()` : returns available in-memory tasks<br><br>
+  `TaskQueue.inMemory.availableTasks()` : returns available in-memory tasks<br>
 
 ## note on the in-memory / persistent task queue
 
