@@ -17,7 +17,7 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
   - `_id` is optional
   - `inMemory` is optional, default is set to `false`<br>
 
-  Event listeners (Master only) :<br><br>
+### Event listeners (Master only) :<br><br>
   `TaskQueue.addEventListener(eventType: String, callback: function)`
   - `eventType` is one of `[ 'done', 'error' ]`
   - `callback` is a function prototyped as `callback({ value: Any, task: Task })`, `value` contains the result / error.<br>
@@ -27,7 +27,7 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
 
   note : you can only attach one event listener by eventType.<br><br>
 
-  In-Memory Queue (Master only) :<br><br>
+### In-Memory Queue (Master only) :<br><br>
   `TaskQueue.inMemory.findById(_id: String)`<br><br>
   `TaskQueue.inMemory.removeById(_id: String)`<br><br>
   `TaskQueue.inMemory.tasks()` : returns all in-memory tasks<br><br>
