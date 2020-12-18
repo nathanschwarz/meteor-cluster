@@ -50,7 +50,7 @@ class MongoTaskQueue extends Mongo.Collection {
       }
 
       // log job errors to the error stream, pass the error and the task to the error listener
-      this.onJobError = ({ error, taskId }) => {
+      this.onJobError = Meteor.bindEnvironment(({ error, taskId }) => {
         let doc = null
         if (taskId.startsWith('inMemory_')) {
           doc = this.inMemory.findById(taskId)
@@ -62,7 +62,7 @@ class MongoTaskQueue extends Mongo.Collection {
         }
         errorLogger(error)
         return doc._id
-      }
+      })
 
       // pull available jobs from the queue
       this.pull = (limit = 1, inMemoryOnly = false) => {
