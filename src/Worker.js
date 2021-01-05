@@ -17,8 +17,8 @@ class ClusterWorker {
   static onMessage(task) {
     const taskId = task._id || task
     TaskQueue.execute(task)
-    .then((res) => ClusterWorker.onJobDone(res, taskId))
-    .catch((error) => ClusterWorker.onJobFailed(error, taskId))
+    .then(res => ClusterWorker.onJobDone(res, taskId))
+    .catch(error => ClusterWorker.onJobFailed(error, taskId))
   }
   static onDisconnect() {
     process.exit(0)
@@ -68,9 +68,6 @@ class ClusterWorker {
   }
   startJob(task) {
     this.isIdle = false
-    if (typeof task === 'string') {
-      TaskQueue.update({ _id: task }, { $set: { onGoing: true }})
-    }
     this.worker.send(task)
   }
   close() {

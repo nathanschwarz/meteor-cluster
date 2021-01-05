@@ -73,20 +73,29 @@ class Cluster {
     }
 
     /*
+      @params (availableWorkers: Worker)
+      dispatch jobs to idle workers
+    */
+    this._dispatchJobs = async (availableWorkers) => {
+      for (let i = 0; i < availableWorkers.length; i++) {
+        const job = await TaskQueue.pull(this.inMemoryOnly)
+        if (job !== undefined) {
+          availableWorkers[i].startJob(job)
+        }
+      }
+    }
+    /*
       called at the interval set by Cluster.setRefreshRate
       gets jobs from the list
       gets available workers
       dispatch the jobs to the workers
     */
-    this._run = () => {
+    this._run = async () => {
       const jobsCount = TaskQueue.count(this.inMemoryOnly)
       const hasJobs = jobsCount > 0
       const wantedWorkers = Math.min(this._cpus, jobsCount)
       const availableWorkers = this._getAvailableWorkers(wantedWorkers)
-      if (availableWorkers.length > 0) {
-        const jobs = TaskQueue.pull(availableWorkers.length, this.inMemoryOnly)
-        jobs.forEach((job, i) => availableWorkers[i].startJob(job))
-      }
+      await this._dispatchJobs(availableWorkers)
     }
 
     // initializing interval

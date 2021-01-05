@@ -53,14 +53,13 @@ class InMemoryTaskQueue {
     return this.availableTasks().length
   }
   // pull available jobs from the queue
-  pull(limit) {
+  pull() {
     const availableTasks = this.availableTasks()
-    let res = []
-    for (let i = 0; i < availableTasks.length && res.length < limit; i++) {
-      availableTasks[i].onGoing = true
-      res = [ ...res, availableTasks[i] ]
+    if (availableTasks.length) {
+      availableTasks[0].onGoing = true
+      return availableTasks[0]
     }
-    return res
+    return undefined
   }
 }
 

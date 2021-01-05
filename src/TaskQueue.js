@@ -36,18 +36,18 @@ class MongoTaskQueue extends Mongo.Collection {
       this.removeEventListener = (type) => this.addEventListener(type,  null)
 
       // remove the job from the queue when completed, pass the result to the done listener
-      this.onJobDone = async ({ result, taskId }) => {
+      this.onJobDone = Meteor.bindEnvironment(async ({ result, taskId }) => {
         let doc = null
         if (taskId.startsWith('inMemory_')) {
           doc = this.inMemory.removeById(taskId)
         } else {
-          doc = await this.rawCollection().findOneAndDelete({ _id: taskId })
+          doc = await this.rawCollection().findOneAndDelete({ _id: taskId }).then(res => res.value)
         }
         if (this.listeners.done !== null) {
           this.listeners.done({ value: result, task: doc })
         }
         return doc._id
-      }
+      })
 
       // log job errors to the error stream, pass the error and the task to the error listener
       this.onJobError = Meteor.bindEnvironment(({ error, taskId }) => {
@@ -65,12 +65,17 @@ class MongoTaskQueue extends Mongo.Collection {
       })
 
       // pull available jobs from the queue
-      this.pull = (limit = 1, inMemoryOnly = false) => {
+      this.pull = async (inMemoryOnly = false) => {
         const inMemoryCount = this.inMemory.count()
         if (inMemoryCount > 0 || inMemoryOnly) {
-          return this.inMemory.pull(limit)
+          return this.inMemory.pull()
         }
-        return this.find({ onGoing: false }, { limit, sort: { priority: -1, createdAt: 1 }}).fetch().map(i => i._id)
+        return this.rawCollection().findOneAndUpdate({ onGoing: false }, { $set: { onGoing: true }}, { sort: { priority: -1, createdAt: 1 }}).then(res => {
+          if (res.value != null) {
+            return res.value
+          }
+          return undefined
+        })
       }
 
       // count available jobs (onGoing: false)
