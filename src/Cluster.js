@@ -49,7 +49,7 @@ class Cluster {
     this.getWorker = (id) => this._workers[this.getWorkerIndex(id)]
 
     // update all previous undone task, to restart them (if the master server has crashed or was stopped)
-    TaskQueue.update({ onGoing: true }, { $set: { onGoing: false }})
+    TaskQueue.update({ onGoing: true }, { $set: { onGoing: false }}, { multi: true })
 
     /*
       @params (wantedWorkers: Integer)

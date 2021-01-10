@@ -15,7 +15,7 @@ class ClusterWorker {
   }
   // worker events
   static onMessage(task) {
-    const taskId = task._id || task
+    const taskId = task._id
     TaskQueue.execute(task)
     .then(res => ClusterWorker.onJobDone(res, taskId))
     .catch(error => ClusterWorker.onJobFailed(error, taskId))

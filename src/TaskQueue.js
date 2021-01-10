@@ -65,7 +65,7 @@ class MongoTaskQueue extends Mongo.Collection {
       })
 
       // pull available jobs from the queue
-      this.pull = async (inMemoryOnly = false) => {
+      this.pull = (inMemoryOnly = false) => {
         const inMemoryCount = this.inMemory.count()
         if (inMemoryCount > 0 || inMemoryOnly) {
           return this.inMemory.pull()
