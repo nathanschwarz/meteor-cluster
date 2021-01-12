@@ -62,7 +62,7 @@ Both in-memory and persistent tasks are available at the same time, and can be u
 
   `constructor(taskMap: Object, { port: Integer, maxAvailableWorkers: Integer, refreshRate: Integer, inMemoryOnly: Boolean })`
   - `taskMap`: a map of functions associated to a `taskType`
-  - `maxAvailableWorkers`: maximum number of child process (cores), default set to maximum
+  - `maxAvailableWorkers`: maximum number of child process (cores), default is set to system maximum
   - `port`: server port for child process servers, default set to `3008`
   - `refreshRate`: Worker pool refresh rate (in ms), default set to `1000`
   - `inMemoryOnly`: force the cluster to only pull jobs from the in-memory task queue.
@@ -75,6 +75,31 @@ Both in-memory and persistent tasks are available at the same time, and can be u
 
   if the Master process crashes or restarts, all the unfinished jobs will be restarted from the beginning.<br/>
   Each job is logged when started / finished with the format : `${timestamp}:task:${taskType}:${taskId}`<br/>
+
+# CPUS allocation
+
+You should not use the default `maxAvailableWorkers` (cpus allocation number) value.
+The default value is set to your system cpus number, but it's a reference value.
+It's up to you to understand your needs and allocate cpus accordingly.
+
+## how can I calculate the maximum number of cpus I can allocate ?
+
+for example, if you're running on a 8 core machine :
+
+- The app you're running is using 1 cpu to run.
+- You should have a reverse proxy on your server, you should at least save 1 cpu (may be more depending on your traffic).
+- the database you're using is hosted on the same server, you should save 1 cpu for it.
+- you're running an external service such as Redis or Elastic Search, so that's 1 down.
+
+so you should have `maxAvailableWorkers = Cluster.maxWorkers() - 4 === 4`
+
+## what if I allocated too much CPUS ?
+
+You can't allocate more than your maximum system cpu number.
+You still can outrange the theoretical maximum process number :
+
+in such case your overall system should be **slowed down** because some of the processes execution will be deferred.
+**It will drastically reduce the multi-core performance gain**
 
 # basic usage
 
@@ -92,7 +117,7 @@ Both in-memory and persistent tasks are available at the same time, and can be u
   }
 
   function onJobsDone({ value, task }) {
-    console.log('do something with the result')  
+    console.log('do something with the result')
   }
 
   function onJobsError({ value, task }) {
