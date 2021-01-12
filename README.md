@@ -104,6 +104,7 @@ You still can outrange the theoretical maximum process number :
 in such case your overall system should be **slowed down** because some of the processes execution will be deferred.
 **It will drastically reduce the multi-core performance gain**.
 
+# examples
 ## basic usage
 
 ```
