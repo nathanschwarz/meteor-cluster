@@ -77,7 +77,7 @@ Both in-memory and persistent tasks are available at the same time, and can be u
   `setRefreshRate(refreshRate: Integer)`: change the refresh rate on the master
 
   if the Master process crashes or restarts, all the unfinished jobs will be restarted from the beginning.<br/>
-  Each job is logged when started / finished with the format : `${timestamp}:task:${taskType}:${taskId}`<br/>
+  Each job is logged when started / finished with the format : `${timestamp}:nschwarz:cluster:${taskType}:${taskId}`<br/>
 
 # CPUS allocation
 
