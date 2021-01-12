@@ -1,9 +1,7 @@
 # meteor-cluster
 
-Meteor Package enabling users to create a Worker Pool on the server to handle heavy jobs.
-
-It can run synchronous and asynchronous tasks from a persitent / in-memory queue.
-
+Meteor Package enabling users to create a Worker Pool on the server to handle heavy jobs.<br/>
+It can run synchronous and asynchronous tasks from a persitent / in-memory queue.<br/>
 It can also run recurring and scheduled tasks.
 
 # TaskQueue
@@ -100,13 +98,13 @@ so you should have `maxAvailableWorkers = Cluster.maxWorkers() - 4 === 4`
 
 ## what if I allocated too much CPUS ?
 
-You can't allocate more than your maximum system cpu number.
+You can't allocate more than your maximum system cpu number.<br/>
 You still can outrange the theoretical maximum process number :
 
 in such case your overall system should be **slowed down** because some of the processes execution will be deferred.
-**It will drastically reduce the multi-core performance gain**
+**It will drastically reduce the multi-core performance gain**.
 
-# basic usage
+## basic usage
 
 ```
   import { Meteor } from 'meteor/meteor'
@@ -162,7 +160,7 @@ in such case your overall system should be **slowed down** because some of the p
   })
 ```
 
-# scheduled task example : run a task in ten minutes
+## scheduled task example : run a task in ten minutes
 ```
   import { add } from 'date-fns/date' // external library to handle date objects
 
@@ -170,7 +168,7 @@ in such case your overall system should be **slowed down** because some of the p
   TaskQueue.addTask({ taskType: 'sometype', priority: 1, data: {}, dueDate })
 ```
 
-# scheduled task example : run a recurring task every ten minutes
+## scheduled task example : run a recurring task every ten minutes
 ```
   import { add } from 'date-fns/date' // external library to handle date objects
 
