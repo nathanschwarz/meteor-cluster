@@ -1,13 +1,16 @@
 # meteor-cluster
 
 Meteor Package enabling users to create a Worker Pool on the server to handle heavy jobs.
+
 It can run synchronous and asynchronous tasks from a persitent / in-memory queue.
+
 It can also run recurring and scheduled tasks.
 
 # TaskQueue
 
   `TaskQueue` is both a Mongodb and an in-memory backed job queue.<br>
   It enables to add, update, remove jobs consistently between processes.
+
   You can attach event listeners to handle the tasks results / errors<br>
 
 ## prototype
