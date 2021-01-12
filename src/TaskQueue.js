@@ -10,9 +10,14 @@ import { logger, errorLogger } from './logs'
 class MongoTaskQueue extends Mongo.Collection {
   // verify that the collection indexes are set
   _setIndexes() {
-    this.rawCollection().createIndex({ taskType: 1 })
-    this.rawCollection().createIndex({ onGoing: 1 })
-    this.rawCollection().createIndex({ priority: -1, createdAt: 1 })
+    this.rawCollection().ensureIndex({ taskType: 1 })
+    this.rawCollection().ensureIndex({ onGoing: 1 })
+    // remove post @1.2 index if it exists
+    this.rawCollection().dropIndex({ priority: -1, createdAt: 1 }).catch(e => e)
+
+    // add dueDate index for scheduled tasks in @1.2; add dueDate field to prior @1.2 tasks
+    this.update({ dueDate: null }, { $set: { dueDate: new Date() }}, { multi: true })
+    this.rawCollection().ensureIndex({ dueDate: 1, priority: -1, createdAt: 1 })
   }
   constructor(props) {
     super(props)
@@ -70,7 +75,7 @@ class MongoTaskQueue extends Mongo.Collection {
         if (inMemoryCount > 0 || inMemoryOnly) {
           return this.inMemory.pull()
         }
-        return this.rawCollection().findOneAndUpdate({ onGoing: false }, { $set: { onGoing: true }}, { sort: { priority: -1, createdAt: 1 }}).then(res => {
+        return this.rawCollection().findOneAndUpdate({ onGoing: false, dueDate: { $lte: new Date() }}, { $set: { onGoing: true }}, { sort: { priority: -1, createdAt: 1, dueDate: 1 }}).then(res => {
           if (res.value != null) {
             return res.value
           }
@@ -105,13 +110,14 @@ class MongoTaskQueue extends Mongo.Collection {
   registerTaskMap(map = {}) {
     this.taskMap = map
   }
-  addTask({ taskType, priority = 1, data = {}, _id = null, inMemory = false }, cb = null) {
+  addTask({ taskType, priority = 1, data = {}, _id = null, inMemory = false, dueDate = new Date() }, cb = null) {
     Meteor.setTimeout(() => {
       Match.test(taskType, String)
       Match.test(priority, Match.Integer)
       Match.test(data, Match.Object)
       Match.test(inMemory, Boolean)
-      let doc = { taskType, priority, data, createdAt: new Date(), onGoing: false }
+      Match.test(dueDate, Date)
+      let doc = { taskType, priority, data, createdAt: new Date(), onGoing: false, dueDate }
       if (_id != null) {
         doc._id = _id
       }

@@ -1,6 +1,6 @@
 const debug = Npm.require('debug')
 
-const logger = debug('nschwarz:cluster:TASK\t')
+const logger = debug('nschwarz:cluster:TASK')
 const warnLogger = debug('nschwarz:cluster:WARNING\t')
 const errorLogger = debug('nschwarz:cluster:ERROR\t')
 

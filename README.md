@@ -2,6 +2,7 @@
 
 Meteor Package enabling users to create a Worker Pool on the server to handle heavy jobs.
 It can run synchronous and asynchronous tasks from a persitent / in-memory queue.
+It can also run recurring and scheduled tasks.
 
 # TaskQueue
 
@@ -11,11 +12,12 @@ It can run synchronous and asynchronous tasks from a persitent / in-memory queue
 
 ## prototype
 
-  `TaskQueue.addTask({ taskType: String, data: Object, priority: Integer, _id: String, inMemory: Boolean })`
+  `TaskQueue.addTask({ taskType: String, data: Object, priority: Integer, _id: String, dueDate: Date, inMemory: Boolean })`
   - `taskType` is mandatory
   - `data` is mandatory but you can pass an empty object
   - `priority` is mandatory, default is set to 1
   - `_id` is optional
+  - `dueDate` is mandatory, default is set to `new Date()`
   - `inMemory` is optional, default is set to `false`<br>
 
 ### Event listeners (Master only) :
@@ -155,4 +157,27 @@ in such case your overall system should be **slowed down** because some of the p
       persistentTask(1, 2)
     }
   })
+```
+
+# scheduled task example : run a task in ten minutes
+```
+  import { add } from 'date-fns/date' // external library to handle date objects
+
+  const dueDate = add(new Date(), { minutes: 10 })
+  TaskQueue.addTask({ taskType: 'sometype', priority: 1, data: {}, dueDate })
+```
+
+# scheduled task example : run a recurring task every ten minutes
+```
+  import { add } from 'date-fns/date' // external library to handle date objects
+
+  function schedTask(job) {
+    // do something
+    const dueDate = add(new Date(), { minutes: 10 })
+    TaskQueue.addTask({ taskType: 'schedTask', priority: 1, data: {}, dueDate })
+  }
+
+  const taskMap = {
+    schedTask
+  }
 ```

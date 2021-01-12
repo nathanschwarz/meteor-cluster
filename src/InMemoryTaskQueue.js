@@ -2,10 +2,10 @@ import { Random } from 'meteor/random'
 
 class InMemoryTaskQueue {
   static compareJobs(a, b) {
-    if (a.priority > b.priority) {
+    if (a.dueDate < b.dueDate || a.priority > b.priority) {
       return -1
     }
-    if (a.priority < b.priority) {
+    if (a.dueDate > b.dueDate || a.priority < b.priority) {
       return 1
     }
     if (a.createdAt > b.createdAt) {
@@ -46,7 +46,8 @@ class InMemoryTaskQueue {
   }
   // get available jobs (onGoing: false)
   availableTasks() {
-    return this._data.filter(job => !job.onGoing)
+    const now = new Date()
+    return this._data.filter(job => !job.onGoing && now >= job.dueDate)
   }
   // count available jobs (onGoing: false)
   count() {
