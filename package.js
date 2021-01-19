@@ -6,12 +6,18 @@ Package.describe({
   documentation: 'README.md'
 })
 
-Package.onUse((api) => {
+Package.onUse(api => {
   api.versionsFrom('1.9')
-  api.use([ 'ecmascript', 'random' ])
+  api.use([ 'mongo', 'ecmascript', 'random' ])
   api.mainModule('src/index.js', 'server')
 })
 
 Npm.depends({
   debug: '4.2.0'
+})
+
+Package.onTest(api => {
+	api.use('nschwarz:cluster')
+	api.use([ 'ecmascript' ])
+	api.mainModule('src/tests.js')
 })
