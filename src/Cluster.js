@@ -21,7 +21,7 @@ class Cluster {
         this._init(masterProps)
       } else {
         // register listeners if this process is a worker
-        process.on('message', ClusterWorker.onMessage)
+        process.on('message', ClusterWorker.onMessageFromMaster)
         process.on('disconnect', ClusterWorker.onDisconnect)
       }
     })
@@ -30,7 +30,7 @@ class Cluster {
     @params (masterProps: { port: Integer, maxAvailableWorkers: Integer, refreshRate: Integer, inMemoryOnly: Boolean })
     initialize Cluster on the master
   */
-  _init({ port = 3008, maxAvailableWorkers = MAX_CPUS, refreshRate = 1000, inMemoryOnly = false }) {
+  _init({ port = 3008, maxAvailableWorkers = MAX_CPUS, refreshRate = 1000, inMemoryOnly = false, messageBroker = null }) {
     if (maxAvailableWorkers > MAX_CPUS) {
       warnLogger(`cannot have ${maxAvailableWorkers} workers, setting max system available: ${MAX_CPUS}`)
       this._cpus = MAX_CPUS
@@ -46,6 +46,7 @@ class Cluster {
     this._port = port
     this._workers = []
     this.inMemoryOnly = inMemoryOnly
+    this.messageBroker = null
 
     // find worker by process id
     this.getWorkerIndex = (id) =>this._workers.findIndex(w => w.id === id)
@@ -64,7 +65,7 @@ class Cluster {
       const workerToCreate = wantedWorkers - this._workers.length
       if (workerToCreate > 0) {
         for (let i = 0; i < workerToCreate; i++) {
-          const worker = new ClusterWorker()
+          const worker = new ClusterWorker(this.messageBroker)
           worker.register({ ...process.env, PORT: this.port })
           this._workers.push(worker)
         }

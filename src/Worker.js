@@ -14,11 +14,24 @@ class ClusterWorker {
     process.send(msg)
   }
   // worker events
-  static onMessage(task) {
+  static onMessageFromMaster(task) {
     const taskId = task._id
     TaskQueue.execute(task)
     .then(res => ClusterWorker.onJobDone(res, taskId))
     .catch(error => ClusterWorker.onJobFailed(error, taskId))
+  }
+  waitForMessageBroker(messageBroker) {
+    return new Promise((resolve, reject) => {
+      process.on('message', (msg) => {
+        resolve(messageBroker(msg))
+      })
+    }).then(res => {
+      process.on('message', ClusterWorker.onMessageFromMaster)
+      return res
+    }).catch(err => {
+      process.on('message', ClusterWorker.onMessageFromMaster)
+      throw(err)
+    })
   }
   static onDisconnect() {
     process.exit(0)
@@ -37,11 +50,12 @@ class ClusterWorker {
     }}
     ClusterWorker.sendMsg(msg)
   }
-  constructor(onRemove) {
+  constructor(messageBroker = null) {
     this.isIdle = true
     this.isReady = false
     this.removed = false
     this.worker = null
+    this.messageBroker = messageBroker
   }
   // Master processes
   // events
@@ -51,13 +65,19 @@ class ClusterWorker {
   onExit() {
     this.removed = true
   }
+  setIdle({ taskId, result, error = undefined }) {
+    this.isIdle = true
+    if (error !== undefined) {
+      TaskQueue.onJobError({ error, taskId })
+    } else {
+      TaskQueue.onJobDone({ result, taskId })
+    }
+  }
   onMessage(msg) {
-    if (msg.status === WORKER_STATUSES.IDLE) {
-      this.isIdle = true
-      TaskQueue.onJobDone({ result: msg.result, taskId: msg.taskId })
-    } else if (msg.status === WORKER_STATUSES.IDLE_ERROR) {
-      this.isIdle = true
-      TaskQueue.onJobError({ error: msg.error, taskId: msg.taskId })
+    if (msg.status === WORKER_STATUSES.IDLE || msg.status === WORKER_STATUSES.IDLE_ERROR) {
+      this.setIdle(msg)
+    } else if (this.messageBroker) {
+      this.messageBroker({ send: this.worker.send, setIdle: this.setIdle }, msg)
     }
   }
   register(env) {
