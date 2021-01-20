@@ -1,3 +1,4 @@
+import { Meteor } from 'meteor/meteor'
 import { Cluster, TaskQueue } from './index.js'
 
 const taskMap = {
