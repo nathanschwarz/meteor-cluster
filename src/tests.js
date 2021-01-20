@@ -1,4 +1,3 @@
-const process = require('process')
 import { Cluster, TaskQueue } from './index.js'
 
 const taskMap = {
