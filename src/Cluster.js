@@ -46,7 +46,7 @@ class Cluster {
     this._port = port
     this._workers = []
     this.inMemoryOnly = inMemoryOnly
-    this.messageBroker = null
+    this.messageBroker = messageBroker
 
     // find worker by process id
     this.getWorkerIndex = (id) =>this._workers.findIndex(w => w.id === id)

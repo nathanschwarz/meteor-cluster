@@ -13,7 +13,6 @@ const taskMap = {
 	},
 	schedTest(job) {
 		const now = Date.now()
-		console.log(job)
 		const expectedDate = new Date(job.dueDate).getTime()
 		const createdAt = new Date(job.createdAt).getTime()
 		const wantedTime = expectedDate - createdAt
@@ -25,6 +24,17 @@ const taskMap = {
 			throw new Error(`\n\n[schedTest][${job._id}]: called too late: diff is ${msDiff}ms\n\n`)
 		}
 		console.log(`\n\n[schedTest][${job._id}]: called on time: diff is ${msDiff}ms\n\n`)
+	},
+	ipcPingTest(job, toggleIPC) {
+		console.log('\nipcPingTest started\n')
+		return toggleIPC(
+			(msg, closeIPC) => {
+				console.log(`\n\n${msg}\n\n`)
+				closeIPC()
+		}, (sendMessageToMaster) => {
+			console.log('\nsending message to master now\n')
+			sendMessageToMaster({ status: 4, data: 'ping' })
+		})
 	}
 }
 
@@ -43,8 +53,10 @@ function handleOtherEvents({ startsInMemory, isLastJob }) {
 	if (startsInMemory) {
 		inMemoryJobs()
 	} else if (isLastJob) {
-		cleanup()
-		console.log('\n\n####### TEST SUITE DONE #######\n\n')
+		Meteor.setTimeout(() => {
+			cleanup()
+			console.log('\n\n####### TEST SUITE DONE #######\n\n')
+		}, 1000 * 10)
 	}
 }
 function onJobDone(job) {
@@ -65,7 +77,13 @@ function onJobError(job) {
 	handleOtherEvents(task.data)
 }
 
-const cluster = new Cluster(taskMap, { refreshRate: 500 })
+function messageBroker(respond, msg) {
+	if (msg.data === 'ping') {
+		respond('pong')
+	}
+}
+
+const cluster = new Cluster(taskMap, { refreshRate: 500, messageBroker })
 
 function testSuite() {
 	if (Cluster.isMaster()) {
@@ -75,6 +93,7 @@ function testSuite() {
 		console.log('\n\n####### MONGO TASKS TESTS #######\n\n')
 		TaskQueue.addTask({ _id: 'MONGO_SYNC', priority: 1, taskType: 'simpleTest', data: { isLastJob: false }})
 		TaskQueue.addTask({ _id: 'MONGO_ASYNC', priority: 1, taskType: 'simpleAsyncTest', data: { isLastJob: false }})
+		TaskQueue.addTask({ _id: 'MESSAGE_BROKER', priority: 1, taskType: 'ipcPingTest', data: { isLastJob: false }})
 		console.log('\n\n####### SCHED TEST #######\n\n')
 		const dueDate = new Date()
 		dueDate.setSeconds(dueDate.getSeconds() + 5)

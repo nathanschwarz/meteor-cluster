@@ -93,13 +93,13 @@ class MongoTaskQueue extends Mongo.Collection {
       }
     } else {
       // execute the task on the child process
-      this.execute = async (job) => {
+      this.execute = async (job, toggleIPC) => {
         const begin = Date.now()
         const isInMemory = typeof(job) === 'object'
         const task = isInMemory ? job : this.findOne({ _id: job })
         const log = logger.extend(task.taskType).extend(task._id).extend('\t')
         log('started')
-        const result = await this.taskMap[task.taskType](task)
+        const result = await this.taskMap[task.taskType](task, toggleIPC)
         const end = Date.now()
         const totalTime = end - begin
         log(`done in ${totalTime}ms`)

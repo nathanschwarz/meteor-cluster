@@ -14,34 +14,34 @@ class ClusterWorker {
     process.send(msg)
   }
   // worker events
+  static toggleIPC(messageBroker, initialize) {
+    return new Promise((resolve, reject) => {
+      process.removeAllListeners('message')
+      process.on('message', (msg) => messageBroker(msg, resolve))
+      initialize(ClusterWorker.sendMsg)
+    }).catch(e => {
+      throw new Error(e)
+    })
+  }
   static onMessageFromMaster(task) {
     const taskId = task._id
-    TaskQueue.execute(task)
+    TaskQueue.execute(task, ClusterWorker.toggleIPC)
     .then(res => ClusterWorker.onJobDone(res, taskId))
     .catch(error => ClusterWorker.onJobFailed(error, taskId))
-  }
-  waitForMessageBroker(messageBroker) {
-    return new Promise((resolve, reject) => {
-      process.on('message', (msg) => {
-        resolve(messageBroker(msg))
-      })
-    }).then(res => {
-      process.on('message', ClusterWorker.onMessageFromMaster)
-      return res
-    }).catch(err => {
-      process.on('message', ClusterWorker.onMessageFromMaster)
-      throw(err)
-    })
   }
   static onDisconnect() {
     process.exit(0)
   }
   // task events
   static onJobDone(result, taskId) {
+    process.removeAllListeners('message')
+    process.on('message', ClusterWorker.onMessageFromMaster)
     const msg = { result, taskId, status: WORKER_STATUSES.IDLE }
     ClusterWorker.sendMsg(msg)
   }
   static onJobFailed(error, taskId) {
+    process.removeAllListeners('message')
+    process.on('message', ClusterWorker.onMessageFromMaster)
     const msg = { taskId, status: WORKER_STATUSES.IDLE_ERROR, error: {
       message: error.message,
       stack: error.stack,
@@ -76,8 +76,8 @@ class ClusterWorker {
   onMessage(msg) {
     if (msg.status === WORKER_STATUSES.IDLE || msg.status === WORKER_STATUSES.IDLE_ERROR) {
       this.setIdle(msg)
-    } else if (this.messageBroker) {
-      this.messageBroker({ send: this.worker.send, setIdle: this.setIdle }, msg)
+    } else if (this.messageBroker !== null) {
+      this.messageBroker((msg) => this.worker.send(msg), msg)
     }
   }
   register(env) {
