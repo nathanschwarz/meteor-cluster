@@ -42,11 +42,11 @@ function cleanup() {
 
 function handleOtherEvents({ startsInMemory, isLastJob }) {
 	if (startsInMemory) {
-			inMemoryJobs()
-		} else if (isLastJob) {
-			cleanup()
-			console.log('\n\n####### TEST SUITE DONE #######\n\n')
-		}
+		inMemoryJobs()
+	} else if (isLastJob) {
+		cleanup()
+		console.log('\n\n####### TEST SUITE DONE #######\n\n')
+	}
 }
 function onJobDone(job) {
 	const task = job.task
