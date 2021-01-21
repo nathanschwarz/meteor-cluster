@@ -241,6 +241,7 @@ function ipcPingTest(job, toggleIPC) {
         toggleIPC(
         (msg, closeIPC) => {
           console.log(msg)
+          closeIPC()
         }, (sendMessageToMaster) => sendMessageToMaster({ status: 4, data: 'ping' })
       )
     )
