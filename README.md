@@ -19,7 +19,7 @@ It can also run recurring and scheduled tasks.
   - `priority` is mandatory, default is set to 1
   - `_id` is optional
   - `dueDate` is mandatory, default is set to `new Date()`
-  - `inMemory` is optional, default is set to `false`<br>
+  - `inMemory` is optional, default is set to `false`<br/>
 
 ### Event listeners (Master only) :
 
@@ -63,12 +63,13 @@ Both in-memory and persistent tasks are available at the same time, and can be u
 
 ## prototype
 
-  `constructor(taskMap: Object, { port: Integer, maxAvailableWorkers: Integer, refreshRate: Integer, inMemoryOnly: Boolean })`
+  `constructor(taskMap: Object, { port: Integer, maxAvailableWorkers: Integer, refreshRate: Integer, inMemoryOnly: Boolean, messageBroker: function })`
   - `taskMap`: a map of functions associated to a `taskType`
   - `maxAvailableWorkers`: maximum number of child process (cores), default is set to system maximum
   - `port`: server port for child process servers, default set to `3008`
   - `refreshRate`: Worker pool refresh rate (in ms), default set to `1000`
   - `inMemoryOnly`: force the cluster to only pull jobs from the in-memory task queue.
+  - `messageBroker` is optional, default set to null (see IPC section)<br>
 
   `Cluster.isMaster()`: `true` if this process is the master<br/>
 
@@ -78,6 +79,27 @@ Both in-memory and persistent tasks are available at the same time, and can be u
 
   if the Master process crashes or restarts, all the unfinished jobs will be restarted from the beginning.<br/>
   Each job is logged when started / finished with the format : `${timestamp}:nschwarz:cluster:${taskType}:${taskId}`<br/>
+
+## IPC
+
+Introduced in version 2.0.0, you can communicate between the child processes and the Master.
+To do so, you must provide the Master Cluster instance with a `messageBroker` function.
+this function will handle (on the master) all custom messages from the child processes.
+
+the function should be prototype as follow :<br/>
+`messageBroker(respond: function, msg: { status: Int > 1, data: Any })`
+- `respond` enables you to answer to a message from a child<br/>
+
+All communications between the master and a child must be started by the child.
+To do so you can use the second parameter passed in all functions provided to the taskMap `toggleIPC` which is prototyped as follow :
+
+`toggleIPC(messageBroker: function, initalize: function): Promise`
+- `messageBroker` is prototyped as `messageBroker(msg: Any, closeIPC: function)`
+- `initialize` is prototyped as `initialize(sendMessageToMaster: function)`<br/>
+
+because `toggleIPC` returns a promise you must return it (recursively), otherwise the job will be considered done, and the worker Idle.<br/>
+Not returning it will result in unwanted, non expected behavior.
+
 
 # CPUS allocation
 
@@ -182,4 +204,55 @@ in such case your overall system should be **slowed down** because some of the p
   const taskMap = {
     schedTask
   }
+```
+
+## simple IPC example
+```
+function ipcPingTest(job, toggleIPC) {
+	return toggleIPC(
+		(msg, closeIPC) => {
+			console.log(`\n\n${msg}\n\n`)
+			closeIPC()
+	}, (sendMessageToMaster) => sendMessageToMaster({ status: 4, data: 'ping' }))
+}
+
+const taskMap = {
+  ipcPingTest
+}
+
+function messageBroker(respond, msg) {
+	if (msg.data === 'ping') {
+		respond('pong')
+	}
+}
+
+const cluster = new Cluster(taskMap, { messageBroker })
+```
+
+## multiple IPC example
+```
+function ipcPingTest(job, toggleIPC) {
+	return toggleIPC(
+		(msg, closeIPC) => {
+			console.log(msg)
+			return toggleIPC(
+        (msg) => {
+          console.log(msg)
+          closeIPC()
+        }, (sendMessageToMaster) => sendMessageToMaster({ status: 4, data: 'ping' })
+      )
+	}, (sendMessageToMaster) => sendMessageToMaster({ status: 4, data: 'ping' }))
+}
+
+const taskMap = {
+  ipcPingTest
+}
+
+function messageBroker(respond, msg) {
+	if (msg.data === 'ping') {
+		respond('pong')
+	}
+}
+
+const cluster = new Cluster(taskMap, { messageBroker })
 ```
