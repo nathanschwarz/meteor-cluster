@@ -80,7 +80,7 @@ Both in-memory and persistent tasks are available at the same time, and can be u
   if the Master process crashes or restarts, all the unfinished jobs will be restarted from the beginning.<br/>
   Each job is logged when started / finished with the format : `${timestamp}:nschwarz:cluster:${taskType}:${taskId}`<br/>
 
-## IPC
+## IPC (advanced usage)
 
 Introduced in version 2.0.0, you can communicate between the child processes and the Master.
 To do so, you must provide the Master Cluster instance with a `messageBroker` function.
@@ -206,7 +206,7 @@ in such case your overall system should be **slowed down** because some of the p
   }
 ```
 
-## simple IPC example
+## simple IPC example (advanced usage)
 ```
 function ipcPingTest(job, toggleIPC) {
   return toggleIPC(
@@ -231,7 +231,7 @@ function messageBroker(respond, msg) {
 const cluster = new Cluster(taskMap, { messageBroker })
 ```
 
-## multiple IPC example
+## multiple IPC example (advanced usage)
 ```
 function ipcPingTest(job, toggleIPC) {
   return toggleIPC(
