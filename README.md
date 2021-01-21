@@ -244,7 +244,7 @@ function ipcPingTest(job, toggleIPC) {
         }, (sendMessageToMaster) => sendMessageToMaster({ status: 4, data: 'ping' })
       )
     )
-	}, (sendMessageToMaster) => sendMessageToMaster({ status: 4, data: 'ping' }))
+  }, (sendMessageToMaster) => sendMessageToMaster({ status: 4, data: 'ping' }))
 }
 
 const taskMap = {
