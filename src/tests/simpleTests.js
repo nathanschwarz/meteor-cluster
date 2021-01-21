@@ -17,7 +17,7 @@ function simpleAsyncTest(job) {
 function logDiff(msDiff, taskType, _id) {
   if (msDiff < 0) {
     throw new Error(`\n\n[${taskType}][${_id}]: called too soon: diff is ${msDiff}ms\n\n`)
-  } else if (msDiff > 1000) {
+  } else if (msDiff > 5000) {
     throw new Error(`\n\n[${taskType}][${_id}]: called too late: diff is ${msDiff}ms\n\n`)
   }
   console.log(`\n\n[${taskType}][${_id}]: called on time: diff is ${msDiff}ms\n\n`)
@@ -38,10 +38,10 @@ function simpleSchedTest(job) {
 
 function simpleRecuringTest(job) {
   handleMsDiff(job)
-  if (job.data.completeted < 3) {
+  if (job.data.completed < 3 || job.data.completed === undefined) {
     const dueDate = new Date()
     dueDate.setSeconds(dueDate.getSeconds() + 5)
-    TaskQueue.addTask({ taskType: 'simpleRecuringTest', data: { ...job.data, completed: (job.data.completeted || 0) + 1, startsInMemory: job.data.completed === 2 }, dueDate })
+    TaskQueue.addTask({ taskType: 'simpleRecuringTest', data: { ...job.data, completed: (job.data.completed || 0) + 1, startsInMemory: job.data.completed === 2 }, dueDate })
   }
 }
 

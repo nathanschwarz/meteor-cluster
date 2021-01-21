@@ -3,7 +3,7 @@ function ipcSinglePingTest(job, toggleIPC) {
     (msg, closeIPC) => {
       console.log(`\n\n${msg}\n\n`)
       closeIPC()
-    }, (smtm) => smtmt({ status: 4, data: 'ping' })
+    }, (smtm) => smtm({ status: 4, data: 'ping' })
   )
 }
 

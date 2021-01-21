@@ -62,7 +62,7 @@ function onJobError(job) {
 }
 
 function messageBroker(respond, msg) {
-  console.log(`\n\n${msg}\n\n`)
+  console.log(`\n\n${msg.data}\n\n`)
   if (msg.data === 'ping') {
     respond('pong')
   }
