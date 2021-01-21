@@ -212,7 +212,8 @@ function ipcPingTest(job, toggleIPC) {
   return toggleIPC(
     (msg, closeIPC) => {
       console.log(msg)
-      closeIPC()
+      const result = 'result you eventually want to pass to the master'
+      closeIPC(result)
     }, (sendMessageToMaster) => sendMessageToMaster({ status: 4, data: 'ping' })
   )
 }
@@ -236,12 +237,13 @@ function ipcPingTest(job, toggleIPC) {
   return toggleIPC(
     (msg, closeIPC) => {
       console.log(msg)
-      return toggleIPC(
-        (msg) => {
+      closeIPC(
+        toggleIPC(
+        (msg, closeIPC) => {
           console.log(msg)
-          closeIPC()
         }, (sendMessageToMaster) => sendMessageToMaster({ status: 4, data: 'ping' })
       )
+    )
 	}, (sendMessageToMaster) => sendMessageToMaster({ status: 4, data: 'ping' }))
 }
 
