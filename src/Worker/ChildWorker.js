@@ -13,7 +13,7 @@ class ChildWorker {
   static toggleIPC(messageBroker, initialize) {
     return new Promise((resolve, reject) => {
       process.removeAllListeners('message')
-      process.on('message', (msg) => messageBroker(msg, resolve))
+      process.on('message', (msg) => resolve(messageBroker(msg)))
       initialize(ChildWorker.sendMsg)
     }).catch(e => {
       throw new Error(e)

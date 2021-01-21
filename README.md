@@ -94,7 +94,7 @@ All communications between the master and a child must be started by the child.
 To do so you can use the second parameter passed in all functions provided to the taskMap `toggleIPC` which is prototyped as follow :
 
 `toggleIPC(messageBroker: function, initalize: function): Promise`
-- `messageBroker` is prototyped as `messageBroker(msg: Any, closeIPC: function)`
+- `messageBroker` is prototyped as `messageBroker(msg: Any)`
 - `initialize` is prototyped as `initialize(sendMessageToMaster: function)`<br/>
 
 because `toggleIPC` returns a promise you must return it (recursively), otherwise the job will be considered done, and the worker Idle.<br/>
@@ -210,11 +210,10 @@ in such case your overall system should be **slowed down** because some of the p
 ```
 function ipcPingTest(job, toggleIPC) {
   return toggleIPC(
-    (msg, closeIPC) => {
+    (msg) => {
       console.log(msg)
-      const result = 'result you eventually want to pass to the master'
-      closeIPC(result)
-    }, (sendMessageToMaster) => sendMessageToMaster({ status: 4, data: 'ping' })
+      return 'result you eventually want to pass to the master'
+    }, (smtm) => smtm({ status: 4, data: 'ping' })
   )
 }
 
@@ -235,17 +234,13 @@ const cluster = new Cluster(taskMap, { messageBroker })
 ```
 function ipcPingTest(job, toggleIPC) {
   return toggleIPC(
-    (msg, closeIPC) => {
+    (msg) => {
       console.log(msg)
-      closeIPC(
-        toggleIPC(
-        (msg, closeIPC) => {
-          console.log(msg)
-          closeIPC()
-        }, (sendMessageToMaster) => sendMessageToMaster({ status: 4, data: 'ping' })
+      return toggleIPC(
+        (msg) => console.log(msg),
+        (smtm) => smtm({ status: 4, data: 'ping' })
       )
-    )
-  }, (sendMessageToMaster) => sendMessageToMaster({ status: 4, data: 'ping' }))
+    }, (smtm) => smtm({ status: 4, data: 'ping' }))
 }
 
 const taskMap = {
