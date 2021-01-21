@@ -4,7 +4,7 @@ import WORKER_STATUSES from './statuses'
 import TaskQueue from '../TaskQueue'
 
 class ChildWorker {
-	// sends an identifyed msg to the Master
+  // sends an identifyed msg to the Master
   static sendMsg(workerStatus) {
     const msg = { id: [cluster.worker.id], ...workerStatus }
     process.send(msg)

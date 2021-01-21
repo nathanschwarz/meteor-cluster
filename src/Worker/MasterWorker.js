@@ -11,13 +11,6 @@ class MasterWorker {
     this.worker = null
     this.messageBroker = messageBroker
   }
-  // events
-  onListening() {
-    this.isReady = true
-  }
-  onExit() {
-    this.removed = true
-  }
   setIdle({ taskId, result, error = undefined }) {
     this.isIdle = true
     if (error !== undefined) {
@@ -25,6 +18,13 @@ class MasterWorker {
     } else {
       TaskQueue.onJobDone({ result, taskId })
     }
+  }
+  // events
+  onListening() {
+    this.isReady = true
+  }
+  onExit() {
+    this.removed = true
   }
   onMessage(msg) {
     if (msg.status === WORKER_STATUSES.IDLE || msg.status === WORKER_STATUSES.IDLE_ERROR) {
