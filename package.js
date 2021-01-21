@@ -19,5 +19,5 @@ Npm.depends({
 Package.onTest(api => {
 	api.use('nschwarz:cluster')
 	api.use([ 'ecmascript' ])
-	api.mainModule('src/tests.js')
+	api.mainModule('src/tests/_index.js')
 })
