@@ -209,11 +209,12 @@ in such case your overall system should be **slowed down** because some of the p
 ## simple IPC example
 ```
 function ipcPingTest(job, toggleIPC) {
-	return toggleIPC(
-		(msg, closeIPC) => {
-			console.log(`\n\n${msg}\n\n`)
-			closeIPC()
-	}, (sendMessageToMaster) => sendMessageToMaster({ status: 4, data: 'ping' }))
+  return toggleIPC(
+    (msg, closeIPC) => {
+      console.log(msg)
+      closeIPC()
+    }, (sendMessageToMaster) => sendMessageToMaster({ status: 4, data: 'ping' })
+  )
 }
 
 const taskMap = {
@@ -221,9 +222,9 @@ const taskMap = {
 }
 
 function messageBroker(respond, msg) {
-	if (msg.data === 'ping') {
-		respond('pong')
-	}
+  if (msg.data === 'ping') {
+    respond('pong')
+  }
 }
 
 const cluster = new Cluster(taskMap, { messageBroker })
@@ -232,10 +233,10 @@ const cluster = new Cluster(taskMap, { messageBroker })
 ## multiple IPC example
 ```
 function ipcPingTest(job, toggleIPC) {
-	return toggleIPC(
-		(msg, closeIPC) => {
-			console.log(msg)
-			return toggleIPC(
+  return toggleIPC(
+    (msg, closeIPC) => {
+      console.log(msg)
+      return toggleIPC(
         (msg) => {
           console.log(msg)
           closeIPC()
@@ -249,9 +250,9 @@ const taskMap = {
 }
 
 function messageBroker(respond, msg) {
-	if (msg.data === 'ping') {
-		respond('pong')
-	}
+  if (msg.data === 'ping') {
+    respond('pong')
+  }
 }
 
 const cluster = new Cluster(taskMap, { messageBroker })
