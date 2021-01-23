@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor'
 import { Mongo } from 'meteor/mongo'
-import { Match } from 'meteor/check'
+import { check } from 'meteor/check'
 
 const cluster = require('cluster')
 
@@ -112,11 +112,11 @@ class MongoTaskQueue extends Mongo.Collection {
   }
   addTask({ taskType, priority = 1, data = {}, _id = null, inMemory = false, dueDate = new Date() }, cb = null) {
     Meteor.setTimeout(() => {
-      Match.test(taskType, String)
-      Match.test(priority, Match.Integer)
-      Match.test(data, Match.Object)
-      Match.test(inMemory, Boolean)
-      Match.test(dueDate, Date)
+      check.test(taskType, String)
+      check.test(priority, Match.Integer)
+      check.test(data, Match.Object)
+      check.test(inMemory, Boolean)
+      check.test(dueDate, Date)
       let doc = { taskType, priority, data, createdAt: new Date(), onGoing: false, dueDate }
       if (_id != null) {
         doc._id = _id
