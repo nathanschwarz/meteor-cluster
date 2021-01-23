@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor'
 import { Mongo } from 'meteor/mongo'
-import { check } from 'meteor/check'
+import { Match } from 'meteor/check'
 
 const cluster = require('cluster')
 
@@ -112,11 +112,20 @@ class MongoTaskQueue extends Mongo.Collection {
   }
   addTask({ taskType, priority = 1, data = {}, _id = null, inMemory = false, dueDate = new Date() }, cb = null) {
     Meteor.setTimeout(() => {
-      check.test(taskType, String)
-      check.test(priority, Match.Integer)
-      check.test(data, Match.Object)
-      check.test(inMemory, Boolean)
-      check.test(dueDate, Date)
+      const tests = [
+        { name: 'taskType', value: taskType, type: String,                         typeLabel: 'String' },
+        { name: 'priority', value: priority, type: Match.Integer,                  typeLabel: 'Integer' },
+        { name: 'data',     value: data,     type: [ Match.Object, [ Match.Any ]], typeLabel: 'Object|Array' },
+        { name: 'inMemory', value: inMemory, type: Boolean,                        typeLabel: 'Boolean' },
+        { name: 'dueDate',  value: dueDate,  type: Date,                           typeLabel: 'Date' }
+      ]
+      tests.forEach(t => {
+        const test = Array.isArray(t.type) ? Match.OneOf(t.value, t.type) : Match.test(t.value, t.type)
+        if (!test) {
+          throw new Error(`nschwarz:cluster:addTask\t wrong value ${t.value} for ${t.name}, expecting ${t.typeLabel}`)
+        }
+      })
+
       let doc = { taskType, priority, data, createdAt: new Date(), onGoing: false, dueDate }
       if (_id != null) {
         doc._id = _id
