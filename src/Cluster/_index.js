@@ -1,12 +1,5 @@
 const cluster = require('cluster')
+import MasterCluster from './MasterCluster'
+import ChildProcess from './ChildProcess'
 
-let Cluster = null
-if (cluster.isMaster) {
-  import MasterCluster from './MasterCluster'
-  Cluster = MasterCluster
-} else {
-  import ChildProcess from './ChildProcess'
-  Cluster = ChildProcess
-}
-
-export default Cluster
+export default (cluster.isMaster ? MasterCluster : ChildProcess)
