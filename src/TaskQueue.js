@@ -122,7 +122,7 @@ class MongoTaskQueue extends Mongo.Collection {
       tests.forEach(t => {
         const test = Array.isArray(t.type) ? Match.OneOf(t.value, t.type) : Match.test(t.value, t.type)
         if (!test) {
-          throw new Error(`nschwarz:cluster:addTask\t wrong value ${t.value} for ${t.name}, expecting ${t.typeLabel}`)
+          throw new Error(`nschwarz:cluster:addTask\twrong value ${t.value} for ${t.name}, expecting ${t.typeLabel}`)
         }
       })
 
