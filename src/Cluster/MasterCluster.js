@@ -13,7 +13,7 @@ class MasterCluster extends StaticCluster {
     @params (taskMap: Object, masterProps: { port: Integer, maxAvailableWorkers: Integer, refreshRate: Integer, inMemoryOnly: Boolean })
     initialize Cluster on the master
   */
-  constructor(taskMap, { port = 3008, maxAvailableWorkers = MAX_CPUS, refreshRate = 1000, inMemoryOnly = false, messageBroker = null }) {
+  constructor(taskMap, { port = 3008, maxAvailableWorkers = MAX_CPUS, refreshRate = 1000, inMemoryOnly = false, messageBroker = null } = {}) {
     super()
     Meteor.startup(() => {
       if (maxAvailableWorkers > MAX_CPUS) {
