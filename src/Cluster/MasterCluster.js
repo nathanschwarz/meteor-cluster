@@ -26,7 +26,7 @@ class MasterCluster extends StaticCluster {
         this._cpus = maxAvailableWorkers
       }
       if (this._cpus === MAX_CPUS) {
-        warnLogger(`you should not use all the cpus, please read the CPUS allocation documentation`)
+        warnLogger(`you should not use all the cpus, read more https://github.com/nathanschwarz/meteor-cluster/blob/main/README.md#cpus-allocation`)
       }
       this._port = port
       this._workers = []
