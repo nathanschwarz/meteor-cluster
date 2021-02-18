@@ -195,14 +195,33 @@ in such case your overall system should be **slowed down** because some of the p
 ```
   import { add } from 'date-fns/date' // external library to handle date objects
 
-  function schedTask(job) {
+  function recurringTask(job) {
     // do something
     const dueDate = add(new Date(), { minutes: 10 })
-    TaskQueue.addTask({ taskType: 'schedTask', priority: 1, data: {}, dueDate })
+    TaskQueue.addTask({ taskType: 'recurringTask', priority: 1, data: {}, dueDate })
   }
 
   const taskMap = {
-    schedTask
+    recurringTask
+  }
+```
+
+Because the next recurring task is kept in the queue, if the server is restarted, it will start the recurring task again.
+Be sure to remove all recurring task *on the master* before starting others, or lock the insert :
+
+You can either do :
+
+`Meteor.startup(() => {
+  if (Cluster.isMaster()) {
+    TaskQueue.remove({ tasType: 'recurringTask' })
+  }  
+})`
+
+or at task *initialization* :
+```
+  const recurringTaskExists = TaskQueue.findOne({ taskType: 'recurringTask' }) !== undefined
+  if (!recurringTaskExists) {
+    TaskQueue.addtask({ taskType: 'recurringTask', priority: 1, data: {}, dueDate })
   }
 ```
 
