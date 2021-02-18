@@ -1,6 +1,6 @@
 Package.describe({
   name: 'nschwarz:cluster',
-  version: '2.1.4',
+  version: '2.1.5',
   summary: 'native nodejs clusterization for meteor server',
   git: 'https://github.com/nathanschwarz/meteor-cluster.git',
   documentation: 'README.md'
@@ -13,7 +13,7 @@ Package.onUse(api => {
 })
 
 Npm.depends({
-  debug: '4.2.0'
+  debug: '4.3.1'
 })
 
 Package.onTest(api => {
