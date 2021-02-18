@@ -7,6 +7,7 @@ const cluster = require('cluster')
 import InMemoryTaskQueue from './InMemoryTaskQueue'
 import { logger, errorLogger } from './logs'
 
+
 class MongoTaskQueue extends Mongo.Collection {
   // verify that the collection indexes are set
   _setIndexes() {
@@ -110,33 +111,33 @@ class MongoTaskQueue extends Mongo.Collection {
     this.taskMap = map
   }
   addTask({ taskType, priority = 1, data = {}, _id = null, inMemory = false, dueDate = new Date() }, cb = null) {
-    Meteor.setTimeout(() => {
-      const tests = [
-        { name: 'taskType', value: taskType, type: String,                         typeLabel: 'String' },
-        { name: 'priority', value: priority, type: Match.Integer,                  typeLabel: 'Integer' },
-        { name: 'data',     value: data,     type: [ Match.Object, [ Match.Any ]], typeLabel: 'Object|Array' },
-        { name: 'inMemory', value: inMemory, type: Boolean,                        typeLabel: 'Boolean' },
-        { name: 'dueDate',  value: dueDate,  type: Date,                           typeLabel: 'Date' }
-      ]
-      tests.forEach(t => {
-        const test = Array.isArray(t.type) ? Match.OneOf(t.value, t.type) : Match.test(t.value, t.type)
-        if (!test) {
-          throw new Error(`nschwarz:cluster:addTask\twrong value ${t.value} for ${t.name}, expecting ${t.typeLabel}`)
-        }
-      })
+    const tests = [
+      { name: 'taskType', value: taskType, type: String,                         typeLabel: 'String' },
+      { name: 'priority', value: priority, type: Match.Integer,                  typeLabel: 'Integer' },
+      { name: 'data',     value: data,     type: [ Match.Object, [ Match.Any ]], typeLabel: 'Object|Array' },
+      { name: 'inMemory', value: inMemory, type: Boolean,                        typeLabel: 'Boolean' },
+      { name: 'dueDate',  value: dueDate,  type: Date,                           typeLabel: 'Date' }
+    ]
+    const error = tests.some(t => Array.isArray(t.type) ? !Match.OneOf(t.value, t.type) : !Match.test(t.value, t.type))
+    if (error) {
+      throw new Error(`nschwarz:cluster:addTask\twrong value ${t.value} for ${t.name}, expecting ${t.typeLabel}`)
+    }
 
-      let doc = { taskType, priority, data, createdAt: new Date(), onGoing: false, dueDate }
-      if (_id != null) {
-        doc._id = _id
+    let doc = { taskType, priority, data, createdAt: new Date(), onGoing: false, dueDate }
+    if (_id != null) {
+      doc._id = _id
+    }
+    if (inMemory) {
+      if (!cluster.isMaster) {
+        throw new Error('cannot insert inMemory job from child process')
       }
-      if (inMemory) {
-        if (!cluster.isMaster) {
-          throw new Error('cannot start inMemory job from child process')
-        }
-        return this.inMemory.insert(doc)
-      }
+      return this.inMemory.insert(doc)
+    }
+    if (cb) {
       return this.insert(doc, cb)
-    }, 0)
+    } else {
+      return this.insert(doc)
+    }
   }
 }
 

@@ -8,10 +8,10 @@ class ChildProcess extends StaticCluster {
     super()
     Meteor.startup(() => {
       TaskQueue.registerTaskMap(taskMap)
+      // register listeners if this process is a worker
+      process.on('message', ChildWorker.onMessageFromMaster)
+      process.on('disconnect', ChildWorker.onDisconnect)
     })
-    // register listeners if this process is a worker
-    process.on('message', ChildWorker.onMessageFromMaster)
-    process.on('disconnect', ChildWorker.onDisconnect)
   }
 }
 
