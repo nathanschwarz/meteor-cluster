@@ -207,7 +207,8 @@ in such case your overall system should be **slowed down** because some of the p
 ```
 
 Because the next recurring task is kept in the queue, if the server is restarted, it will start the recurring task again.
-Be sure to remove all recurring task *on the master* before starting others, or lock the insert :
+Be sure to remove all recurring task *on the master* before starting others, or secure the insert.
+Otherwise you will have multiple same recurring tasks running at the same time.
 
 You can either do :
 
