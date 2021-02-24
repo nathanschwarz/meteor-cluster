@@ -284,17 +284,22 @@ if (Cluster.isMaster()) {
 ## recurring tasks
 
 Because recurring tasks are created "recursively", there will always be a task in the queue.
+
 If the server is restarted, it will start the recurring task because it's still in the queue.
+
 Be sure to remove all recurring task *on the master* before starting others, or secure the insert.
+
 Otherwise you will have multiple identical recurring tasks running at the same time.
 
 You can either do :
 
-`Meteor.startup(() => {
+```
+Meteor.startup(() => {
   if (Cluster.isMaster()) {
     TaskQueue.remove({ tasType: 'recurringTask' })
   }  
-})`
+})
+```
 
 or at task *initialization* :
 ```
@@ -311,8 +316,11 @@ If you want to be sure to have unique task, you should set a unique Id with `Tas
 ## multiple apps
 
 There's no way right now to know from which app the task is started (may change later) :
+
 you should only run the Cluster on **one of the app** to avoid other apps to run a task which is not included in its taskMap.
+
 You can still use the TaskQueue in all the apps of course.
+
 If your apps have different domain names / configurations (for the mailer for example), you should pass these through the `data` field.
 
 For example if you're using `Meteor.absoluteUrl` or such in a task it will be incorrect.
