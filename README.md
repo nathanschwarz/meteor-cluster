@@ -207,26 +207,6 @@ in such case your overall system should be **slowed down** because some of the p
   }
 ```
 
-Because the next recurring task is kept in the queue, if the server is restarted, it will start the recurring task again.
-Be sure to remove all recurring task *on the master* before starting others, or secure the insert.
-Otherwise you will have multiple same recurring tasks running at the same time.
-
-You can either do :
-
-`Meteor.startup(() => {
-  if (Cluster.isMaster()) {
-    TaskQueue.remove({ tasType: 'recurringTask' })
-  }  
-})`
-
-or at task *initialization* :
-```
-  const recurringTaskExists = TaskQueue.findOne({ taskType: 'recurringTask' }) !== undefined
-  if (!recurringTaskExists) {
-    TaskQueue.addtask({ taskType: 'recurringTask', priority: 1, data: {}, dueDate })
-  }
-```
-
 ## simple IPC example (advanced usage)
 ```
 function ipcPingTest(job, toggleIPC) {
@@ -276,3 +256,63 @@ function messageBroker(respond, msg) {
 
 const cluster = new Cluster(taskMap, { messageBroker })
 ```
+
+# common mistakes and good practices
+
+## secure your imports
+
+Because the worker will only work on tasks, you should remove the unnecessary imports to avoid ressources consumption and longer startup time.
+As a good practice you should put all your Master imports logic in the same file, and import it only on the master.
+What I mean by "Master imports Logic" is :
+
+- all your publications
+- all your REST endpoints declarations
+- graphql server and such...
+- SSR / front related code
+
+It could be summarized as such :
+
+```
+// in your entry file
+
+if (Cluster.isMaster()) {
+  import './MasterImports.js'
+}
+// ...rest of your cluster logic
+```
+
+## recurring tasks
+
+Because recurring tasks are created "recursively", there will always be a task in the queue.
+If the server is restarted, it will start the recurring task because it's still in the queue.
+Be sure to remove all recurring task *on the master* before starting others, or secure the insert.
+Otherwise you will have multiple identical recurring tasks running at the same time.
+
+You can either do :
+
+`Meteor.startup(() => {
+  if (Cluster.isMaster()) {
+    TaskQueue.remove({ tasType: 'recurringTask' })
+  }  
+})`
+
+or at task *initialization* :
+```
+  const recurringTaskExists = TaskQueue.findOne({ taskType: 'recurringTask' }) !== undefined
+  if (!recurringTaskExists) {
+    TaskQueue.addtask({ taskType: 'recurringTask', priority: 1, data: {}, dueDate })
+  }
+```
+
+## task uniqueness
+
+If you want to be sure to have unique task, you should set a unique Id with `TaskQueue.addTask`.
+
+## multiple apps
+
+There's no way right now to know from which app the task is started (It may change later) :
+you should only run the Cluster on **one of the app** to avoid other apps to run a task which is not included in its taskMap.
+You can still use the TaskQueue in all the apps of course.
+If your apps have different domain names / configurations (for the mailer for example), you should pass these through the `data` field.
+
+For example if you're using `Meteor.absoluteUrl` or such in a task it will be incorrect.
