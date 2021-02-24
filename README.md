@@ -261,8 +261,8 @@ const cluster = new Cluster(taskMap, { messageBroker })
 
 ## secure your imports
 
-Because the worker will only work on tasks, you should remove the unnecessary imports to avoid ressources consumption and longer startup time.
-As a good practice you should put all your Master imports logic in the same file, and import it only on the master.
+Because the worker will only work on tasks, you should remove the unnecessary imports to avoid ressources consumption and longer startup time.<br/>
+As a good practice you should put all your Master imports logic in the same file, and import it only on the master.<br/>
 What I mean by "Master imports Logic" is :
 
 - all your publications
@@ -283,13 +283,10 @@ if (Cluster.isMaster()) {
 
 ## recurring tasks
 
-Because recurring tasks are created "recursively", there will always be a task in the queue.
-
-If the server is restarted, it will start the recurring task because it's still in the queue.
-
-Be sure to remove all recurring task *on the master* before starting others, or secure the insert.
-
-Otherwise you will have multiple identical recurring tasks running at the same time.
+Because recurring tasks are created "recursively", there will always be a task in the queue.<br/>
+If the server is restarted, it will start the recurring task because it's still in the queue.<br/>
+Be sure to remove all recurring task *on the master* before starting others, or secure the insert.<br/>
+Otherwise you will have multiple identical recurring tasks running at the same time.<br/>
 
 You can either do :
 
@@ -302,6 +299,7 @@ Meteor.startup(() => {
 ```
 
 or at task *initialization* :
+
 ```
   const recurringTaskExists = TaskQueue.findOne({ taskType: 'recurringTask' }) !== undefined
   if (!recurringTaskExists) {
@@ -315,12 +313,9 @@ If you want to be sure to have unique task, you should set a unique Id with `Tas
 
 ## multiple apps
 
-There's no way right now to know from which app the task is started (may change later) :
-
-you should only run the Cluster on **one of the app** to avoid other apps to run a task which is not included in its taskMap.
-
-You can still use the TaskQueue in all the apps of course.
-
-If your apps have different domain names / configurations (for the mailer for example), you should pass these through the `data` field.
+There's no way right now to know from which app the task is started (may change later) :<br/>
+you should only run the Cluster on **one of the app** to avoid other apps to run a task which is not included in its taskMap.<br/>
+You can still use the TaskQueue in all the apps of course.<br/>
+If your apps have different domain names / configurations (for the mailer for example), you should pass these through the `data` field.<br/>
 
 For example if you're using `Meteor.absoluteUrl` or such in a task it will be incorrect.
