@@ -309,7 +309,8 @@ or at task *initialization* :
 
 ## task uniqueness
 
-If you want to be sure to have unique task, you should set a unique Id with `TaskQueue.addTask`.
+If you want to be sure to have unique tasks, you should set a unique Id with `TaskQueue.addTask`.<br/>
+A good model could be : `${taskType}${associated_Model_ID}`
 
 ## multiple apps
 
