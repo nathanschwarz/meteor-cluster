@@ -319,4 +319,4 @@ you should only run the Cluster on **one of the app** to avoid other apps to run
 You can still use the TaskQueue in all the apps of course.<br/>
 If your apps have different domain names / configurations (for the mailer for example), you should pass these through the `data` field.<br/>
 
-For example if you're using `Meteor.absoluteUrl` or such in a task it will be incorrect.
+For example if you're using `Meteor.absoluteUrl` or such in a task it will have the value associated with the app running the Cluster.
