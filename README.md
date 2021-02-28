@@ -293,7 +293,7 @@ You can either do :
 ```
 Meteor.startup(() => {
   if (Cluster.isMaster()) {
-    TaskQueue.remove({ tasType: 'recurringTask' })
+    TaskQueue.remove({ taskType: 'recurringTask' })
   }  
 })
 ```
