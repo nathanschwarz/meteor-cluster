@@ -41,8 +41,8 @@ class MasterCluster extends StaticCluster {
         warnLogger(`you should not use all the cpus, read more https://github.com/nathanschwarz/meteor-cluster/blob/main/README.md#cpus-allocation`)
       }
       if (keepAlive && !keepAlive === `always` && !(Number.isInteger(keepAlive) && keepAlive > 0)) {
-        warnLogger(`keepAlive should be either "default", "always" or some Integer greater than 0 specifying a time in milliseconds to remain on or off, setting to default`)
-        this.keepAlive = `default`
+        warnLogger(`keepAlive should be either be "always" or some Integer greater than 0 specifying a time in milliseconds to remain on;`
+          + ` ignoring keepAlive configuration and falling back to default behavior of only spinning up and keeping workers when the jobs are available`)
       }
       this._port = port
       this._workers = []
@@ -116,7 +116,6 @@ class MasterCluster extends StaticCluster {
     }
     // default behavior is to keep the workers alive in line with the number of jobs available
     let wantedWorkers = Math.min(this._cpus, jobsCount)
-
     if (this.keepAlive === `always`) {
       // always keep the number of workers at the max requested
       wantedWorkers = this._cpus
@@ -125,7 +124,7 @@ class MasterCluster extends StaticCluster {
       if (currentMs - this.lastJobAvailableMilliseconds >= this.keepAlive) {
         // still with the threshold of keepAlive milliseconds, keep the number of workers at the current worker 
         // count or the requested jobs count whichever is bigger
-        Math.min(this._cpus, Math.max(jobsCount, this._workers.length))
+        wantedWorkers = Math.min(this._cpus, Math.max(jobsCount, this._workers.length))
       }
     }
 

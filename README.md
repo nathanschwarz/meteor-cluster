@@ -55,7 +55,7 @@ Both in-memory and persistent tasks are available at the same time, and can be u
   - verifies if workers are available, or create them
   - dispatches jobs to the workers
   - removes the task from the queue once the job is done
-  - closes the workers when no jobs are available
+  - closes the workers when no jobs are available(behavior can be overriden with `keepAlive`)
 
   on the Worker it :
   - starts the job
@@ -63,7 +63,7 @@ Both in-memory and persistent tasks are available at the same time, and can be u
 
 ## prototype
 
-  `constructor(taskMap: Object, { port: Integer, maxAvailableWorkers: Integer, refreshRate: Integer, inMemoryOnly: Boolean, messageBroker: function, logs: String })`
+  `constructor(taskMap: Object, { port: Integer, maxAvailableWorkers: Integer, refreshRate: Integer, inMemoryOnly: Boolean, messageBroker: function, logs: String, keepAlive: String | Integer })`
   - `taskMap`: a map of functions associated to a `taskType`
   - `maxAvailableWorkers`: maximum number of child process (cores), default is set to system maximum
   - `port`: server port for child process servers, default set to `3008`
@@ -71,6 +71,11 @@ Both in-memory and persistent tasks are available at the same time, and can be u
   - `inMemoryOnly`: force the cluster to only pull jobs from the in-memory task queue.
   - `messageBroker` is optional, default set to null (see IPC section)<br>
   - `logs`: is one of `['all', 'error']`, default sets to `all` : if set to `'error'`, will only show the errors and warning logs.
+  - `keepAlive`: an optional parameter that can be set to either:
+    - `'always'` to have the system start up the `maxAvailableWorkers` number of workers immediately and keep them all alive always
+    - some `Integer` value will have the system not shutdown workers until the number passed in milliseconds has passed since last a job was available to be picked up by a worker
+    
+    **NOTE:** default behavior when `keepAlive` is not set is to only keep alive workers when there are jobs available to be picked up by them. 
 
   `Cluster.isMaster()`: `true` if this process is the master<br/>
 
@@ -136,9 +141,9 @@ in such case your overall system should be **slowed down** because some of the p
 
   const taskMap = {
     'TEST': job => console.log(`testing ${job._id} at position ${job.data.position}`),
-    'SYNC': (job) => console.log("this is a synchrone task"),
+    'SYNC': (job) => console.log("this is a synchronous task"),
     'ASYNC': (job) => new Promise((resolve, reject) => Meteor.setTimeout(() => {
-      console.log("this is an asynchrone task")
+      console.log("this is an asynchronous task")
       resolve()
     }, job.data.timeout))
   }
@@ -261,7 +266,7 @@ const cluster = new Cluster(taskMap, { messageBroker })
 
 ## secure your imports
 
-Because the worker will only work on tasks, you should remove the unnecessary imports to avoid ressources consumption and longer startup time.<br/>
+Because the worker will only work on tasks, you should remove the unnecessary imports to avoid resources consumption and longer startup time.<br/>
 As a good practice you should put all your Master imports logic in the same file, and import it only on the master.<br/>
 What I mean by "Master imports Logic" is :
 
