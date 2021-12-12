@@ -21,6 +21,7 @@ class MasterCluster extends StaticCluster {
    *   - inMemoryOnly?: Boolean
    *   - messageBroker?: Function
    *   - keepAlive?: String | number
+   *   - autoInitialize?: Boolean
    */
   constructor(
     taskMap,
@@ -30,7 +31,8 @@ class MasterCluster extends StaticCluster {
       refreshRate = 1000,
       inMemoryOnly = false,
       messageBroker = null,
-      keepAlive = null
+      keepAlive = null,
+      autoInitialize = true
     } = {}
   ) {
     super()
@@ -51,10 +53,15 @@ class MasterCluster extends StaticCluster {
         warnLogger(`keepAlive should be either be "always" or some Integer greater than 0 specifying a time in milliseconds to remain on;`
           + ` ignoring keepAlive configuration and falling back to default behavior of only spinning up and keeping workers when the jobs are available`)
       }
+      if (typeof autoInitialize !== `boolean`) {
+        warnLogger(`autoInitialize should be a boolean(was passed as: ${typeof autoInitialize}),`
+          + ` ignoring autoInitialize configuration and falling back to default behavior of autoInitialize: true`)
+      }
       this._port = port
       this._workers = []
       this.inMemoryOnly = inMemoryOnly
       this.messageBroker = messageBroker
+      this.refreshRate = refreshRate
 
       // find worker by process id
       this.getWorkerIndex = (id) => this._workers.findIndex(w => w.id === id)
@@ -65,8 +72,10 @@ class MasterCluster extends StaticCluster {
 
       // initializing interval
       this.setIntervalHandle = null
-      // initializing pool refreshRate
-      this.setRefreshRate(refreshRate)
+
+      if (autoInitialize) {
+        this.initialize()
+      }
     })
   }
 
@@ -144,15 +153,13 @@ class MasterCluster extends StaticCluster {
   }
 
   /**
-   * Set the refresh rate at which Cluster._run is called
-   * 
-   * @param { Integer } delay The interval at which Cluster._run is called
+   * Starts the Cluster._run interval call determined by this.refreshRate
    */
-  setRefreshRate (delay) {
+  initialize () {
     if (this.setIntervalHandle != null) {
       Meteor.clearInterval(this.setIntervalHandle)
     }
-    this.setIntervalHandle = Meteor.setInterval(() => this._run(), delay)
+    this.setIntervalHandle = Meteor.setInterval(() => this._run(), this.refreshRate)
   }
 }
 
