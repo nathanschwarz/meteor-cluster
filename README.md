@@ -63,7 +63,7 @@ Both in-memory and persistent tasks are available at the same time, and can be u
 
 ## prototype
 
-  `constructor(taskMap: Object, { port: Integer, maxAvailableWorkers: Integer, refreshRate: Integer, inMemoryOnly: Boolean, messageBroker: function, logs: String, keepAlive: String | Integer })`
+  `constructor(taskMap: Object, { port: Integer, maxAvailableWorkers: Integer, refreshRate: Integer, inMemoryOnly: Boolean, messageBroker: function, logs: String, keepAlive: String | Integer, autoInitialize: Boolean })`
   - `taskMap`: a map of functions associated to a `taskType`
   - `maxAvailableWorkers`: maximum number of child process (cores), default is set to system maximum
   - `port`: server port for child process servers, default set to `3008`
@@ -76,6 +76,7 @@ Both in-memory and persistent tasks are available at the same time, and can be u
     - some `Integer` value will have the system not shutdown workers until the number passed in milliseconds has passed since last a job was available to be picked up by a worker
     
     **NOTE:** default behavior when `keepAlive` is not set is to only keep alive workers when there are jobs available to be picked up by them. 
+  - `autoInitialize`: an optional parameter that controls whether the system will automatically initialize the cluster's polling for jobs when the `MasterCluster` is created. Default is set to `true`.
 
   `Cluster.isMaster()`: `true` if this process is the master<br/>
 
