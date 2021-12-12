@@ -153,13 +153,25 @@ class MasterCluster extends StaticCluster {
   }
 
   /**
-   * Starts the Cluster._run interval call determined by this.refreshRate
+   * Starts the Cluster._run interval call at the rate determined by this.refreshRate
    */
   initialize () {
-    if (this.setIntervalHandle != null) {
-      Meteor.clearInterval(this.setIntervalHandle)
+    this.setRefreshRate(this.refreshRate)
+  }
+
+  /**
+   * Set the refresh rate at which Cluster._run is called and restart the interval call at the new
+   * rate
+   * 
+   * @param { Integer } delay 
+   */
+  setRefreshRate (delay) {
+    this.refreshRate = delay
+
+    if (this.interval != null) {
+      Meteor.clearInterval(this.interval)
     }
-    this.setIntervalHandle = Meteor.setInterval(() => this._run(), this.refreshRate)
+    this.interval = Meteor.setInterval(() => this._run(), delay)
   }
 }
 
