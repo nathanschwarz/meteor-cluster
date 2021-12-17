@@ -21,10 +21,19 @@ class MasterCluster extends StaticCluster {
    *   - inMemoryOnly?: Boolean
    *   - messageBroker?: Function
    *   - keepAlive?: String | number
+   *   - autoInitialize?: Boolean
    */
   constructor(
     taskMap,
-    { port = 3008, maxAvailableWorkers = MAX_CPUS, refreshRate = 1000, inMemoryOnly = false, messageBroker = null, keepAlive = null } = {}
+    {
+      port = 3008,
+      maxAvailableWorkers = MAX_CPUS,
+      refreshRate = 1000,
+      inMemoryOnly = false,
+      messageBroker = null,
+      keepAlive = null,
+      autoInitialize = true
+    } = {}
   ) {
     super()
     Meteor.startup(() => {
@@ -44,10 +53,15 @@ class MasterCluster extends StaticCluster {
         warnLogger(`keepAlive should be either be "always" or some Integer greater than 0 specifying a time in milliseconds to remain on;`
           + ` ignoring keepAlive configuration and falling back to default behavior of only spinning up and keeping workers when the jobs are available`)
       }
+      if (typeof autoInitialize !== `boolean`) {
+        warnLogger(`autoInitialize should be a boolean(was passed as: ${typeof autoInitialize}),`
+          + ` ignoring autoInitialize configuration and falling back to default behavior of autoInitialize: true`)
+      }
       this._port = port
       this._workers = []
       this.inMemoryOnly = inMemoryOnly
       this.messageBroker = messageBroker
+      this.refreshRate = refreshRate
 
       // find worker by process id
       this.getWorkerIndex = (id) => this._workers.findIndex(w => w.id === id)
@@ -57,18 +71,22 @@ class MasterCluster extends StaticCluster {
       TaskQueue.update({ onGoing: true }, { $set: { onGoing: false } }, { multi: true })
 
       // initializing interval
-      this.interval = null
-      // initializing pool refreshRate
-      this.setRefreshRate(refreshRate)
+      this.setIntervalHandle = null
+
+      if (autoInitialize) {
+        this.initialize()
+      }
     })
   }
-  /*
-    @params (wantedWorkers: Integer)
-    add workers if tasks > current workers
-    remove workers if tasks < current workers
-    @returns non idle workers
-  */
-  _getAvailableWorkers(wantedWorkers) {
+
+  /**
+   * add workers if tasks > current workers
+   * remove workers if tasks < current workers
+   * 
+   * @param { Integer } wantedWorkers 
+   * @returns non idle workers
+   */
+  _getAvailableWorkers (wantedWorkers) {
     const workerToCreate = wantedWorkers - this._workers.length
     if (workerToCreate > 0) {
       for (let i = 0; i < workerToCreate; i++) {
@@ -82,15 +100,17 @@ class MasterCluster extends StaticCluster {
     this._workers = this._workers.filter(w => !w.removed)
     return this._workers.filter(w => w.isIdle && w.isReady)
   }
-  /*
-    @params (availableWorkers: Worker)
-    dispatch jobs to idle workers
-  */
-  async _dispatchJobs(availableWorkers) {
-    for (let i = 0; i < availableWorkers.length; i++) {
+
+  /**
+   * Dispatch jobs to idle workers
+   * 
+   * @param { Worker } availableWorkers 
+   */
+  async _dispatchJobs (availableWorkers) {
+    for (const worker of availableWorkers) {
       const job = await TaskQueue.pull(this.inMemoryOnly)
       if (job !== undefined) {
-        availableWorkers[i].startJob(job)
+        worker.startJob(job)
       }
     }
   }
@@ -104,7 +124,7 @@ class MasterCluster extends StaticCluster {
    * - gets available workers
    * - dispatch the jobs to the workers
    */
-  async _run() {
+  async _run () {
     const currentMs = Date.now()
 
     const jobsCount = TaskQueue.count(this.inMemoryOnly)
@@ -132,11 +152,22 @@ class MasterCluster extends StaticCluster {
     await this._dispatchJobs(availableWorkers)
   }
 
-  /*
-    @params (delay: Integer)
-    set the refresh rate at which Cluster._run is called
-  */
-  setRefreshRate(delay) {
+  /**
+   * Starts the Cluster._run interval call at the rate determined by this.refreshRate
+   */
+  initialize () {
+    this.setRefreshRate(this.refreshRate)
+  }
+
+  /**
+   * Set the refresh rate at which Cluster._run is called and restart the interval call at the new
+   * rate
+   * 
+   * @param { Integer } delay 
+   */
+  setRefreshRate (delay) {
+    this.refreshRate = delay
+
     if (this.interval != null) {
       Meteor.clearInterval(this.interval)
     }
