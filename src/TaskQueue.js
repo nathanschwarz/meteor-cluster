@@ -11,14 +11,14 @@ import { logger, errorLogger } from './logs'
 class MongoTaskQueue extends Mongo.Collection {
   // verify that the collection indexes are set
   _setIndexes() {
-    this.rawCollection().ensureIndex({ taskType: 1 })
-    this.rawCollection().ensureIndex({ onGoing: 1 })
+    this.rawCollection().createIndex({ taskType: 1 })
+    this.rawCollection().createIndex({ onGoing: 1 })
     // remove post @1.2 index if it exists
     this.rawCollection().dropIndex({ priority: -1, createdAt: 1 }).catch(e => e)
 
     // add dueDate index for scheduled tasks in @1.2; add dueDate field to prior @1.2 tasks
     this.update({ dueDate: null }, { $set: { dueDate: new Date() }}, { multi: true })
-    this.rawCollection().ensureIndex({ dueDate: 1, priority: -1, createdAt: 1 })
+    this.rawCollection().createIndex({ dueDate: 1, priority: -1, createdAt: 1 })
   }
   constructor(props) {
     super(props)
