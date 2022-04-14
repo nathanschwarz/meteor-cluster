@@ -1,13 +1,13 @@
 Package.describe({
   name: 'nschwarz:cluster',
-  version: '2.2.0',
+  version: '2.3.0',
   summary: 'native nodejs clusterization for meteor server',
   git: 'https://github.com/nathanschwarz/meteor-cluster.git',
   documentation: 'README.md',
 })
 
 Package.onUse(api => {
-  api.versionsFrom('1.9')
+  api.versionsFrom('2.4')
   api.use(['mongo', 'ecmascript', 'random'])
   api.mainModule('src/index.js', 'server')
 })
